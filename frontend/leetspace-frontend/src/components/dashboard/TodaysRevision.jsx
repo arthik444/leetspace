@@ -1,0 +1,127 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Calendar, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export function TodaysRevision({ revision, className = "" }) {
+  const navigate = useNavigate();
+
+  if (!revision) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-blue-500" />
+            Today's Revision
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              No problems to review today! 🎉
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              All caught up with your spaced repetition
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const difficultyColors = {
+    Easy: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    Medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", 
+    Hard: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  };
+
+  const handleReview = () => {
+    navigate(`/problems/${revision.id}`);
+  };
+
+  const handleSkip = () => {
+    // Could implement a "skip for today" functionality
+    console.log("Skipping revision for today");
+  };
+
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-blue-500" />
+          Today's Revision
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Problem Info */}
+          <div className="space-y-2">
+            <div className="flex items-start justify-between">
+              <h3 className="font-medium text-sm leading-relaxed">{revision.title}</h3>
+              <Badge 
+                className={`text-xs ml-2 ${difficultyColors[revision.difficulty] || difficultyColors.Medium}`}
+              >
+                {revision.difficulty}
+              </Badge>
+            </div>
+            
+            {/* Tags */}
+            {revision.tags && revision.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {revision.tags.slice(0, 3).map(tag => (
+                  <span 
+                    key={tag}
+                    className="px-2 py-0.5 text-xs bg-muted rounded-md text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {revision.tags.length > 3 && (
+                  <span className="px-2 py-0.5 text-xs bg-muted rounded-md text-muted-foreground">
+                    +{revision.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Time since solved */}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>
+                Solved {revision.days_since_solved} day{revision.days_since_solved !== 1 ? 's' : ''} ago
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleReview}
+              className="flex-1 text-sm h-8"
+              size="sm"
+            >
+              <ExternalLink className="h-3 w-3 mr-1" />
+              Review Now
+            </Button>
+            <Button 
+              onClick={handleSkip}
+              variant="outline" 
+              className="text-sm h-8"
+              size="sm"
+            >
+              Skip Today
+            </Button>
+          </div>
+
+          {/* Spaced Repetition Info */}
+          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-800 dark:text-blue-200">
+              📚 Spaced repetition helps you retain knowledge longer
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,0 +1,107 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock, ExternalLink, RotateCcw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export function RecentActivity({ activities = [], className = "" }) {
+  const navigate = useNavigate();
+
+  if (activities.length === 0) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5 text-purple-500" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              No recent activity
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Start solving problems to see your activity here
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const difficultyColors = {
+    Easy: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    Medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    Hard: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  };
+
+  const handleProblemClick = (problemId) => {
+    navigate(`/problems/${problemId}`);
+  };
+
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Clock className="h-5 w-5 text-purple-500" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {activities.map((activity) => (
+            <div 
+              key={activity.id}
+              className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+              onClick={() => handleProblemClick(activity.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-medium text-sm truncate">{activity.title}</h4>
+                  {activity.retry_later && (
+                    <RotateCcw className="h-3 w-3 text-orange-500 flex-shrink-0" title="Marked for retry" />
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge 
+                    className={`text-xs ${difficultyColors[activity.difficulty] || difficultyColors.Medium}`}
+                  >
+                    {activity.difficulty}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">{activity.time_ago}</span>
+                </div>
+
+                {/* Tags */}
+                {activity.tags && activity.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {activity.tags.map(tag => (
+                      <span 
+                        key={tag}
+                        className="px-1.5 py-0.5 text-xs bg-muted rounded text-muted-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <ExternalLink className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
+            </div>
+          ))}
+
+          {/* View All Link */}
+          <div className="pt-2 border-t">
+            <button 
+              onClick={() => navigate('/problems')}
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View all problems →
+            </button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
