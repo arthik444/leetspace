@@ -26,11 +26,11 @@ export function ActivityHeatmap({ data = [], className = "" }) {
 
   const getIntensityClass = (level) => {
     const intensityClasses = {
-      0: "bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
-      1: "bg-green-200 dark:bg-green-900/60 border border-green-300 dark:border-green-800",
-      2: "bg-green-300 dark:bg-green-800/70 border border-green-400 dark:border-green-700", 
-      3: "bg-green-400 dark:bg-green-700/80 border border-green-500 dark:border-green-600",
-      4: "bg-green-500 dark:bg-green-600 border border-green-600 dark:border-green-500"
+      0: "bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/60",
+      1: "bg-green-100 dark:bg-green-900/40 border border-green-200 dark:border-green-800/60",
+      2: "bg-green-200 dark:bg-green-800/50 border border-green-300 dark:border-green-700/70", 
+      3: "bg-green-300 dark:bg-green-700/60 border border-green-400 dark:border-green-600/80",
+      4: "bg-green-400 dark:bg-green-600/70 border border-green-500 dark:border-green-500/90"
     };
     return intensityClasses[level] || intensityClasses[0];
   };
@@ -38,16 +38,16 @@ export function ActivityHeatmap({ data = [], className = "" }) {
   const months = groupByMonth(data);
   const recentMonths = months.slice(-12); // Show last 12 months
 
-  return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="text-lg">Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      return (
+      <Card className={`bg-card dark:bg-card border-border dark:border-border ${className}`}>
+        <CardHeader>
+          <CardTitle className="text-lg text-card-foreground dark:text-card-foreground">Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
           {/* Legend */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Less</span>
+            <span className="text-muted-foreground dark:text-muted-foreground">Less</span>
             <div className="flex items-center space-x-1">
               {[0, 1, 2, 3, 4].map(level => (
                 <div
@@ -56,14 +56,14 @@ export function ActivityHeatmap({ data = [], className = "" }) {
                 />
               ))}
             </div>
-            <span className="text-muted-foreground">More</span>
+            <span className="text-muted-foreground dark:text-muted-foreground">More</span>
           </div>
 
           {/* Day labels */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-3">
             <div className="grid grid-cols-7 gap-1 w-fit">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                <div key={i} className="w-4 h-4 flex items-center justify-center text-center">
+                <div key={i} className="w-4 h-4 flex items-center justify-center text-center font-medium">
                   {day}
                 </div>
               ))}
@@ -76,7 +76,7 @@ export function ActivityHeatmap({ data = [], className = "" }) {
               {recentMonths.map((month, monthIndex) => (
                 <div key={`${month.year}-${month.month}`} className="space-y-2">
                   {/* Month label */}
-                  <div className="text-xs text-muted-foreground text-center font-medium">
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground text-center font-medium">
                     {month.month}
                   </div>
                   
@@ -104,7 +104,7 @@ export function ActivityHeatmap({ data = [], className = "" }) {
           </div>
 
           {/* Summary */}
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             {data.filter(d => d.count > 0).length} days active in the last year
           </div>
         </div>

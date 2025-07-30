@@ -45,11 +45,11 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="min-h-screen bg-background dark:bg-background text-foreground dark:text-foreground p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="text-muted-foreground">Loading dashboard...</span>
+            <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-primary" />
+            <span className="text-muted-foreground dark:text-muted-foreground">Loading dashboard...</span>
           </div>
         </div>
       </div>
@@ -58,11 +58,11 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="min-h-screen bg-background dark:bg-background text-foreground dark:text-foreground p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold text-destructive mb-2">Error</h2>
-            <p className="text-muted-foreground">{error}</p>
+            <h2 className="text-2xl font-bold text-destructive dark:text-destructive mb-2">Error</h2>
+            <p className="text-muted-foreground dark:text-muted-foreground">{error}</p>
           </div>
         </div>
       </div>
@@ -71,11 +71,11 @@ export default function Dashboard() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="min-h-screen bg-background dark:bg-background text-foreground dark:text-foreground p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-2">No Data</h2>
-            <p className="text-muted-foreground">No dashboard data available</p>
+            <h2 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">No Data</h2>
+            <p className="text-muted-foreground dark:text-muted-foreground">No dashboard data available</p>
           </div>
         </div>
       </div>
@@ -85,14 +85,14 @@ export default function Dashboard() {
   const { basic_stats, weaknesses, todays_revision, activity_heatmap, recent_activity } = data;
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen bg-background dark:bg-background text-foreground dark:text-foreground p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground dark:text-foreground">
             📊 Dashboard
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             Your LeetSpace learning analytics and insights
           </p>
         </div>
@@ -127,11 +127,11 @@ export default function Dashboard() {
 
         {/* Most Used Tags */}
         {basic_stats.most_used_tags.length > 0 && (
-          <div className="space-y-3 p-4 rounded-lg border bg-card">
-            <h2 className="text-lg font-semibold text-foreground">Most Used Tags</h2>
+          <div className="space-y-3 p-4 rounded-lg border border-border dark:border-border bg-card dark:bg-card">
+            <h2 className="text-lg font-semibold text-foreground dark:text-foreground">Most Used Tags</h2>
             <div className="flex flex-wrap gap-2">
               {basic_stats.most_used_tags.map(({ tag, count }) => (
-                <Badge key={tag} variant="secondary" className="text-sm hover:bg-secondary/80 transition-colors">
+                <Badge key={tag} variant="secondary" className="text-sm bg-secondary dark:bg-secondary text-secondary-foreground dark:text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-secondary/80 transition-colors">
                   {tag} ({count})
                 </Badge>
               ))}

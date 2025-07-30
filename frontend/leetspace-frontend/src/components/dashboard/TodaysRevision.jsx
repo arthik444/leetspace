@@ -9,19 +9,19 @@ export function TodaysRevision({ revision, className = "" }) {
 
   if (!revision) {
     return (
-      <Card className={className}>
+      <Card className={`bg-card dark:bg-card border-border dark:border-border ${className}`}>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-500" />
+          <CardTitle className="text-lg flex items-center gap-2 text-card-foreground dark:text-card-foreground">
+            <BookOpen className="h-5 w-5 text-blue-500 dark:text-blue-400" />
             Today's Revision
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               No problems to review today! 🎉
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               All caught up with your spaced repetition
             </p>
           </div>
@@ -46,10 +46,10 @@ export function TodaysRevision({ revision, className = "" }) {
   };
 
   return (
-    <Card className={className}>
+    <Card className={`bg-card dark:bg-card border-border dark:border-border ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-blue-500" />
+        <CardTitle className="text-lg flex items-center gap-2 text-card-foreground dark:text-card-foreground">
+          <BookOpen className="h-5 w-5 text-blue-500 dark:text-blue-400" />
           Today's Revision
         </CardTitle>
       </CardHeader>
@@ -58,7 +58,7 @@ export function TodaysRevision({ revision, className = "" }) {
           {/* Problem Info */}
           <div className="space-y-2">
             <div className="flex items-start justify-between">
-              <h3 className="font-medium text-sm leading-relaxed text-foreground">{revision.title}</h3>
+              <h3 className="font-medium text-sm leading-relaxed text-foreground dark:text-foreground">{revision.title}</h3>
               <Badge 
                 className={`text-xs ml-2 ${difficultyColors[revision.difficulty] || difficultyColors.Medium}`}
               >
@@ -86,7 +86,7 @@ export function TodaysRevision({ revision, className = "" }) {
             )}
 
             {/* Time since solved */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground dark:text-muted-foreground">
               <Calendar className="h-3 w-3" />
               <span>
                 Solved {revision.days_since_solved} day{revision.days_since_solved !== 1 ? 's' : ''} ago
@@ -98,7 +98,7 @@ export function TodaysRevision({ revision, className = "" }) {
           <div className="flex gap-2">
             <Button 
               onClick={handleReview}
-              className="flex-1 text-sm h-8"
+              className="flex-1 text-sm h-8 bg-primary dark:bg-primary text-primary-foreground dark:text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/90"
               size="sm"
             >
               <ExternalLink className="h-3 w-3 mr-1" />
@@ -107,7 +107,7 @@ export function TodaysRevision({ revision, className = "" }) {
             <Button 
               onClick={handleSkip}
               variant="outline" 
-              className="text-sm h-8"
+              className="text-sm h-8 border-border dark:border-border text-foreground dark:text-foreground hover:bg-muted dark:hover:bg-muted"
               size="sm"
             >
               Skip Today
@@ -115,7 +115,7 @@ export function TodaysRevision({ revision, className = "" }) {
           </div>
 
           {/* Spaced Repetition Info */}
-          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50">
             <p className="text-xs text-blue-800 dark:text-blue-200">
               📚 Spaced repetition helps you retain knowledge longer
             </p>
