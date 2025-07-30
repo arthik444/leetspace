@@ -8,19 +8,19 @@ export function RecentActivity({ activities = [], className = "" }) {
 
   if (activities.length === 0) {
     return (
-      <Card className={`bg-card dark:bg-card border-border dark:border-border ${className}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2 text-card-foreground dark:text-card-foreground">
+          <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <Clock className="h-5 w-5 text-purple-500 dark:text-purple-400" />
             Recent Activity
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               No recent activity
             </p>
-            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Start solving problems to see your activity here
             </p>
           </div>
@@ -40,9 +40,9 @@ export function RecentActivity({ activities = [], className = "" }) {
   };
 
   return (
-    <Card className={`bg-card dark:bg-card border-border dark:border-border ${className}`}>
+    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2 text-card-foreground dark:text-card-foreground">
+        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
           <Clock className="h-5 w-5 text-purple-500 dark:text-purple-400" />
           Recent Activity
         </CardTitle>
@@ -52,12 +52,12 @@ export function RecentActivity({ activities = [], className = "" }) {
           {activities.map((activity) => (
             <div 
               key={activity.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-border dark:border-border bg-muted/30 dark:bg-muted/20 hover:bg-muted/50 dark:hover:bg-muted/40 cursor-pointer transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
               onClick={() => handleProblemClick(activity.id)}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-sm truncate text-foreground dark:text-foreground">{activity.title}</h4>
+                  <h4 className="font-medium text-sm truncate text-gray-900 dark:text-white">{activity.title}</h4>
                   {activity.retry_later && (
                     <RotateCcw className="h-3 w-3 text-orange-500 dark:text-orange-400 flex-shrink-0" title="Marked for retry" />
                   )}
@@ -69,7 +69,7 @@ export function RecentActivity({ activities = [], className = "" }) {
                   >
                     {activity.difficulty}
                   </Badge>
-                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">{activity.time_ago}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{activity.time_ago}</span>
                 </div>
 
                 {/* Tags */}
@@ -78,7 +78,7 @@ export function RecentActivity({ activities = [], className = "" }) {
                     {activity.tags.map(tag => (
                       <span 
                         key={tag}
-                        className="px-1.5 py-0.5 text-xs bg-muted dark:bg-muted/60 rounded text-muted-foreground dark:text-muted-foreground border border-border/50 dark:border-border/30"
+                        className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-zinc-700 rounded text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-600"
                       >
                         {tag}
                       </span>
@@ -87,15 +87,15 @@ export function RecentActivity({ activities = [], className = "" }) {
                 )}
               </div>
 
-              <ExternalLink className="h-4 w-4 text-muted-foreground dark:text-muted-foreground ml-2 flex-shrink-0" />
+              <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-400 ml-2 flex-shrink-0" />
             </div>
           ))}
 
           {/* View All Link */}
-          <div className="pt-2 border-t border-border dark:border-border">
+          <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
             <button 
               onClick={() => navigate('/problems')}
-              className="w-full text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors"
+              className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               View all problems →
             </button>
