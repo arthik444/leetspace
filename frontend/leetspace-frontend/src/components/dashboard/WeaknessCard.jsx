@@ -37,10 +37,10 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
       <CardContent>
         <div className="space-y-3">
           {weaknesses.map((weakness, index) => (
-            <div key={weakness.tag} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+            <div key={weakness.tag} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 dark:bg-muted/20">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{weakness.tag}</span>
+                  <span className="font-medium text-sm text-foreground">{weakness.tag}</span>
                   <Badge variant="destructive" className="text-xs">
                     {weakness.retry_rate}%
                   </Badge>
@@ -50,9 +50,9 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
                 </p>
               </div>
               <div className="ml-4">
-                <div className="w-16 bg-muted rounded-full h-2">
+                <div className="w-16 bg-muted dark:bg-muted/60 rounded-full h-2">
                   <div 
-                    className="bg-red-500 h-2 rounded-full transition-all"
+                    className="bg-red-500 dark:bg-red-400 h-2 rounded-full transition-all"
                     style={{ width: `${Math.min(weakness.retry_rate, 100)}%` }}
                   />
                 </div>

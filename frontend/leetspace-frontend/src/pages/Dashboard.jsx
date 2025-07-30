@@ -47,9 +47,9 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-background text-foreground p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-muted-foreground">Loading dashboard...</span>
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-muted-foreground">Loading dashboard...</span>
           </div>
         </div>
       </div>
@@ -127,11 +127,11 @@ export default function Dashboard() {
 
         {/* Most Used Tags */}
         {basic_stats.most_used_tags.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Most Used Tags</h2>
+          <div className="space-y-3 p-4 rounded-lg border bg-card">
+            <h2 className="text-lg font-semibold text-foreground">Most Used Tags</h2>
             <div className="flex flex-wrap gap-2">
               {basic_stats.most_used_tags.map(({ tag, count }) => (
-                <Badge key={tag} variant="secondary" className="text-sm">
+                <Badge key={tag} variant="secondary" className="text-sm hover:bg-secondary/80 transition-colors">
                   {tag} ({count})
                 </Badge>
               ))}

@@ -58,7 +58,7 @@ export function TodaysRevision({ revision, className = "" }) {
           {/* Problem Info */}
           <div className="space-y-2">
             <div className="flex items-start justify-between">
-              <h3 className="font-medium text-sm leading-relaxed">{revision.title}</h3>
+              <h3 className="font-medium text-sm leading-relaxed text-foreground">{revision.title}</h3>
               <Badge 
                 className={`text-xs ml-2 ${difficultyColors[revision.difficulty] || difficultyColors.Medium}`}
               >
@@ -72,13 +72,13 @@ export function TodaysRevision({ revision, className = "" }) {
                 {revision.tags.slice(0, 3).map(tag => (
                   <span 
                     key={tag}
-                    className="px-2 py-0.5 text-xs bg-muted rounded-md text-muted-foreground"
+                    className="px-2 py-0.5 text-xs bg-muted dark:bg-muted/60 rounded-md text-muted-foreground"
                   >
                     {tag}
                   </span>
                 ))}
                 {revision.tags.length > 3 && (
-                  <span className="px-2 py-0.5 text-xs bg-muted rounded-md text-muted-foreground">
+                  <span className="px-2 py-0.5 text-xs bg-muted dark:bg-muted/60 rounded-md text-muted-foreground">
                     +{revision.tags.length - 3}
                   </span>
                 )}

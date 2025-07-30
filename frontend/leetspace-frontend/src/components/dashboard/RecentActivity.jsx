@@ -52,14 +52,14 @@ export function RecentActivity({ activities = [], className = "" }) {
           {activities.map((activity) => (
             <div 
               key={activity.id}
-              className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 dark:bg-muted/20 hover:bg-muted/50 dark:hover:bg-muted/40 cursor-pointer transition-colors"
               onClick={() => handleProblemClick(activity.id)}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-sm truncate">{activity.title}</h4>
+                  <h4 className="font-medium text-sm truncate text-foreground">{activity.title}</h4>
                   {activity.retry_later && (
-                    <RotateCcw className="h-3 w-3 text-orange-500 flex-shrink-0" title="Marked for retry" />
+                    <RotateCcw className="h-3 w-3 text-orange-500 dark:text-orange-400 flex-shrink-0" title="Marked for retry" />
                   )}
                 </div>
                 
@@ -78,7 +78,7 @@ export function RecentActivity({ activities = [], className = "" }) {
                     {activity.tags.map(tag => (
                       <span 
                         key={tag}
-                        className="px-1.5 py-0.5 text-xs bg-muted rounded text-muted-foreground"
+                        className="px-1.5 py-0.5 text-xs bg-muted dark:bg-muted/60 rounded text-muted-foreground"
                       >
                         {tag}
                       </span>
