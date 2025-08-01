@@ -39,7 +39,7 @@ export function ActivityHeatmap({ data = [], className = "" }) {
   const recentMonths = months.slice(-12); // Show last 12 months
 
       return (
-      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg text-gray-900 dark:text-white">Activity</CardTitle>
         </CardHeader>

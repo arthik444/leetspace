@@ -9,7 +9,7 @@ export function TodaysRevision({ revision, className = "" }) {
 
   if (!revision) {
     return (
-      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <BookOpen className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -46,7 +46,7 @@ export function TodaysRevision({ revision, className = "" }) {
   };
 
   return (
-    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
+    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <BookOpen className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -98,7 +98,7 @@ export function TodaysRevision({ revision, className = "" }) {
           <div className="flex gap-2">
             <Button 
               onClick={handleReview}
-              className="flex-1 text-sm h-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 cursor-pointer"
+              className="flex-1 text-sm h-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
               size="sm"
             >
               <ExternalLink className="h-3 w-3 mr-1" />
@@ -107,7 +107,7 @@ export function TodaysRevision({ revision, className = "" }) {
             <Button 
               onClick={handleSkip}
               variant="outline" 
-              className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+              className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800"
               size="sm"
             >
               Skip Today

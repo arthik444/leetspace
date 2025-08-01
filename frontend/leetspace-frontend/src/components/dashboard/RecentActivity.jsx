@@ -8,7 +8,7 @@ export function RecentActivity({ activities = [], className = "" }) {
 
   if (activities.length === 0) {
     return (
-      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -40,7 +40,7 @@ export function RecentActivity({ activities = [], className = "" }) {
   };
 
   return (
-    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
+    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -95,7 +95,7 @@ export function RecentActivity({ activities = [], className = "" }) {
           <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
             <button 
               onClick={() => navigate('/problems')}
-              className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+              className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               View all problems →
             </button>
