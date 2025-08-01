@@ -28,6 +28,8 @@ async def get_dashboard_stats(user_id: str):
                 "basic_stats": {
                     "total_problems": 0,
                     "retry_count": 0,
+                    "total_active_days": 0,
+                    "difficulty_breakdown": {"easy": 0, "medium": 0, "hard": 0},
                     "most_used_tags": []
                 },
                 "weaknesses": [],
@@ -48,7 +50,7 @@ async def get_dashboard_stats(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 def calculate_basic_stats(problems: List[Dict]) -> Dict[str, Any]:
-    """Calculate total problems, retry count, and most used tags"""
+    """Calculate total problems, retry count, active days, and difficulty breakdown"""
     
     # Total problems
     total_problems = len(problems)
@@ -56,7 +58,23 @@ def calculate_basic_stats(problems: List[Dict]) -> Dict[str, Any]:
     # Retry later count
     retry_count = sum(1 for p in problems if p.get("retry_later") == "Yes")
     
-    # Most used tags
+    # Total active days (unique dates)
+    unique_dates = set()
+    for problem in problems:
+        date_solved = problem.get("date_solved")
+        if date_solved:
+            unique_dates.add(date_solved)
+    total_active_days = len(unique_dates)
+    
+    # Difficulty breakdown
+    difficulty_counts = Counter(p.get("difficulty") for p in problems if p.get("difficulty"))
+    difficulty_breakdown = {
+        "easy": difficulty_counts.get("Easy", 0),
+        "medium": difficulty_counts.get("Medium", 0), 
+        "hard": difficulty_counts.get("Hard", 0)
+    }
+    
+    # Most used tags (keeping for the detailed section below)
     all_tags = []
     for problem in problems:
         tags = problem.get("tags", [])
@@ -71,7 +89,9 @@ def calculate_basic_stats(problems: List[Dict]) -> Dict[str, Any]:
     return {
         "total_problems": total_problems,
         "retry_count": retry_count,
-        "most_used_tags": most_used_tags
+        "total_active_days": total_active_days,
+        "difficulty_breakdown": difficulty_breakdown,
+        "most_used_tags": most_used_tags  # Keep for detailed section
     }
 
 def detect_weaknesses(problems: List[Dict]) -> List[Dict[str, Any]]:

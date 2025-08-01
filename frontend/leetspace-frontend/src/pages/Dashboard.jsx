@@ -12,6 +12,8 @@ import {
   RotateCcw, 
   Tags, 
   TrendingUp,
+  Calendar,
+  BarChart3,
   Loader2 
 } from 'lucide-react';
 
@@ -112,16 +114,16 @@ export default function Dashboard() {
             icon={RotateCcw}
           />
           <StatCard
-            title="Most Used Tag"
-            value={basic_stats.most_used_tags[0]?.tag || "None"}
-            subtitle={basic_stats.most_used_tags[0] ? `${basic_stats.most_used_tags[0].count} problems` : ""}
-            icon={Tags}
+            title="Active Days"
+            value={basic_stats.total_active_days}
+            subtitle="Days with activity"
+            icon={Calendar}
           />
           <StatCard
-            title="Weaknesses"
-            value={weaknesses.length}
-            subtitle="Areas to improve"
-            icon={TrendingUp}
+            title="Difficulty"
+            value={`${basic_stats.difficulty_breakdown.easy}E | ${basic_stats.difficulty_breakdown.medium}M | ${basic_stats.difficulty_breakdown.hard}H`}
+            subtitle="Easy | Medium | Hard"
+            icon={BarChart3}
           />
         </div>
 
