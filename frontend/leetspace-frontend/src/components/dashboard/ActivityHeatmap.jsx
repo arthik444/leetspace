@@ -52,7 +52,7 @@ export function ActivityHeatmap({ data = [], className = "" }) {
               {[0, 1, 2, 3, 4].map(level => (
                 <div
                   key={level}
-                  className={`w-4 h-4 rounded-sm ${getIntensityClass(level)} shadow-sm`}
+                  className={`w-3 h-3 rounded-sm ${getIntensityClass(level)} shadow-sm`}
                 />
               ))}
             </div>
@@ -60,10 +60,10 @@ export function ActivityHeatmap({ data = [], className = "" }) {
           </div>
 
           {/* Day labels */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-            <div className="grid grid-cols-7 gap-1 w-fit">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 ml-2">
+            <div className="grid grid-cols-7 gap-0.5 w-fit">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                <div key={i} className="w-4 h-4 flex items-center justify-center text-center font-medium">
+                <div key={i} className="w-3 h-3 flex items-center justify-center text-center font-medium text-xs">
                   {day}
                 </div>
               ))}
@@ -72,20 +72,20 @@ export function ActivityHeatmap({ data = [], className = "" }) {
 
           {/* Heatmap Grid */}
           <div className="overflow-x-auto">
-            <div className="grid grid-cols-12 gap-3 min-w-fit">
+            <div className="flex gap-3 min-w-fit">
               {recentMonths.map((month, monthIndex) => (
-                <div key={`${month.year}-${month.month}`} className="space-y-2">
+                <div key={`${month.year}-${month.month}`} className="space-y-2 flex-shrink-0">
                   {/* Month label */}
-                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium h-4">
                     {month.month}
                   </div>
                   
                   {/* Days grid */}
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-0.5 w-fit">
                     {/* Fill empty days at start of month */}
                     {month.days.length > 0 && 
                       Array.from({ length: month.days[0].dayOfWeek }).map((_, i) => (
-                        <div key={`empty-${i}`} className="w-4 h-4" />
+                        <div key={`empty-${i}`} className="w-3 h-3" />
                       ))
                     }
                     
@@ -93,7 +93,7 @@ export function ActivityHeatmap({ data = [], className = "" }) {
                     {month.days.map(day => (
                       <div
                         key={day.date}
-                        className={`w-4 h-4 rounded-sm ${getIntensityClass(day.level)} cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-primary transition-all shadow-sm`}
+                        className={`w-3 h-3 rounded-sm ${getIntensityClass(day.level)} cursor-pointer hover:ring-1 hover:ring-gray-400 transition-all shadow-sm flex-shrink-0`}
                         title={`${day.count} problems solved on ${day.date}`}
                       />
                     ))}
