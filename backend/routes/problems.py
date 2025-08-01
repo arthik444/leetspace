@@ -2,9 +2,10 @@
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.encoders import jsonable_encoder
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from db.mongo import db
 from schemas.problem import ProblemCreate, ProblemInDB, ProblemUpdate
+from auth.verify_token import get_current_user
 from bson import ObjectId
 from datetime import datetime
 from collections import Counter
@@ -18,8 +19,15 @@ collection = db["problems"]
 # POST a problem for a user
 
 @router.post("/", response_model=ProblemInDB)
-async def add_problem(problem: ProblemCreate):
+async def add_problem(
+    problem: ProblemCreate,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    # Use the authenticated user's Firebase UID
+    firebase_uid = current_user.get("uid")
+    
     problem_dict = jsonable_encoder(problem)
+    problem_dict["user_id"] = firebase_uid  # Override with authenticated user ID
 
     conflicts = []
 
@@ -47,7 +55,7 @@ async def add_problem(problem: ProblemCreate):
 
 @router.get("/", response_model=List[ProblemInDB])
 async def get_problems(
-    user_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
     difficulty: Optional[str] = None,
     tags: Optional[List[str]] = Query(None),
     retry_later: Optional[str] = None,
@@ -55,7 +63,9 @@ async def get_problems(
     sort_by: Optional[str] = "date_solved",
     order: Optional[str] = "desc",
 ):
-    query = {"user_id": user_id}
+    # Use authenticated user's Firebase UID
+    firebase_uid = current_user.get("uid")
+    query = {"user_id": firebase_uid}
 
     if difficulty:
         query["difficulty"] = difficulty
@@ -82,10 +92,11 @@ async def get_problems(
 
 # GET stats
 @router.get("/stats")
-async def get_stats(user_id: str):
+async def get_stats(current_user: Dict[str, Any] = Depends(get_current_user)):
     try:
         # 1. Get all problems for the user
-        cursor = collection.find({"user_id": user_id})
+        firebase_uid = current_user.get("uid")
+        cursor = collection.find({"user_id": firebase_uid})
         problems = []
         async for doc in cursor:
             problems.append(doc)
@@ -129,8 +140,15 @@ async def get_stats(user_id: str):
 # GET a problem
 
 @router.get("/{id}", response_model=ProblemInDB)
-async def get_problem(id: str):
-    doc = await collection.find_one({"_id": ObjectId(id)})
+async def get_problem(
+    id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    firebase_uid = current_user.get("uid")
+    doc = await collection.find_one({
+        "_id": ObjectId(id),
+        "user_id": firebase_uid  # Ensure user can only access their own problems
+    })
     if not doc:
         raise HTTPException(status_code=404, detail="Problem not found")
     doc["id"] = str(doc["_id"])
@@ -140,7 +158,12 @@ async def get_problem(id: str):
 # PUT update a problem
 
 @router.put("/{id}", response_model=ProblemInDB)
-async def update_problem(id: str, update: ProblemUpdate):
+async def update_problem(
+    id: str, 
+    update: ProblemUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    firebase_uid = current_user.get("uid")
     update_data = {k: v for k, v in update.dict().items() if v is not None}
 
     if "url" in update_data:
@@ -177,7 +200,10 @@ async def update_problem(id: str, update: ProblemUpdate):
         )
 
     result = await collection.find_one_and_update(
-        {"_id": ObjectId(id)},
+        {
+            "_id": ObjectId(id),
+            "user_id": firebase_uid  # Ensure user can only update their own problems
+        },
         {"$set": update_data},
         return_document=True
     )
@@ -191,8 +217,15 @@ async def update_problem(id: str, update: ProblemUpdate):
 
 # Delete a problem
 @router.delete("/{id}")
-async def delete_problem(id: str):
-    result = await collection.delete_one({"_id": ObjectId(id)})
+async def delete_problem(
+    id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    firebase_uid = current_user.get("uid")
+    result = await collection.delete_one({
+        "_id": ObjectId(id),
+        "user_id": firebase_uid  # Ensure user can only delete their own problems
+    })
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Problem not found")
     return {"detail": "Problem deleted successfully"}

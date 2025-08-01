@@ -3,20 +3,44 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db.mongo import db
-from routes import problems, analytics  # Optional for now if not created
+from routes import problems, analytics, auth
+from config import settings
+import logging
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-# Optional CORS setup for frontend
+app = FastAPI(
+    title="LeetSpace API",
+    description="A comprehensive platform for tracking coding problems and analytics",
+    version="1.0.0"
+)
+
+# CORS setup with proper security
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+# Add production origins when deployed
+if settings.environment == "production":
+    allowed_origins.extend([
+        "https://your-production-domain.com",
+        # Add your actual production domains here
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with frontend URL in production
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Include routers (optional if not made yet)
+# Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(problems.router, prefix="/api/problems", tags=["Problems"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 

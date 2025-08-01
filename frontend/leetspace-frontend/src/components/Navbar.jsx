@@ -1,22 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/components/ThemeProvider";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, User } from "lucide-react";
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
+  const { user, userProfile, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser);
-    return () => unsub();
-  }, []);
-
   const handleLogout = async () => {
-    await signOut(auth);
+    await logout();
     navigate("/auth");
   };
 
@@ -35,10 +28,21 @@ export default function Navbar() {
           {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-white" />}
         </button>
 
-        {user ? (
-          <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">Logout</button>
+        {isAuthenticated ? (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm dark:text-white">
+              <User className="w-4 h-4" />
+              <span>{userProfile?.display_name || user?.email}</span>
+            </div>
+            <button 
+              onClick={handleLogout} 
+              className="text-red-500 cursor-pointer underline text-sm hover:text-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         ) : (
-          <Link to="/auth" className="underline">Login</Link>
+          <Link to="/auth" className="underline text-sm hover:text-blue-600 transition-colors">Login</Link>
         )}
       </div>
     </nav>

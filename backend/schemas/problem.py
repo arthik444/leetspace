@@ -43,4 +43,4 @@ class ProblemInDB(ProblemBase):
     user_id: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -110,7 +110,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
@@ -120,6 +120,7 @@ export function LoginForm({ className, ...props }) {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,7 +134,10 @@ export function LoginForm({ className, ...props }) {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      navigate("/");
+      
+      // Redirect to the page they were trying to access, or dashboard
+      const from = location.state?.from?.pathname || "/problems";
+      navigate(from, { replace: true });
     } catch (err) {
       console.error("Firebase Auth Error:", err.code, err.message);
       switch (err.code) {
@@ -181,7 +185,10 @@ export function LoginForm({ className, ...props }) {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      navigate("/");
+      
+      // Redirect to the page they were trying to access, or dashboard
+      const from = location.state?.from?.pathname || "/problems";
+      navigate(from, { replace: true });
     } catch (err) {
       setErrorMsg(err.message);
     }

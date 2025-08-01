@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Problems from './pages/Problems';
@@ -47,10 +48,26 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/problems" element={<Problems />} />
-        <Route path="/add-problem" element={<AddProblem />} />
-        <Route path="/problems/:id" element={<ProblemDetail />} />
-        <Route path="/edit-problem/:id" element={<EditProblem />} />
+        <Route path="/problems" element={
+          <ProtectedRoute>
+            <Problems />
+          </ProtectedRoute>
+        } />
+        <Route path="/add-problem" element={
+          <ProtectedRoute>
+            <AddProblem />
+          </ProtectedRoute>
+        } />
+        <Route path="/problems/:id" element={
+          <ProtectedRoute>
+            <ProblemDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit-problem/:id" element={
+          <ProtectedRoute>
+            <EditProblem />
+          </ProtectedRoute>
+        } />
       </Routes>
     </>
   );
