@@ -5,7 +5,7 @@ import { AlertTriangle } from "lucide-react";
 export function WeaknessCard({ weaknesses = [], className = "" }) {
   if (weaknesses.length === 0) {
     return (
-      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -27,7 +27,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
   }
 
   return (
-    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
+    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-full ${className}`}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
           <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -37,7 +37,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
       <CardContent>
         <div className="space-y-3">
           {weaknesses.map((weakness, index) => (
-            <div key={weakness.tag} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <div key={weakness.tag} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm text-gray-900 dark:text-white">{weakness.tag}</span>

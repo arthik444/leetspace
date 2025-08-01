@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function StatCard({ title, value, subtitle, icon: Icon, className = "" }) {
   return (
-    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 hover:shadow-md dark:hover:shadow-xl transition-shadow ${className}`}>
+    <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 hover:shadow-md dark:hover:shadow-xl transition-shadow h-full ${className}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
           {title}

@@ -100,7 +100,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
           <StatCard
             title="Total Problems"
             value={basic_stats.total_problems}
@@ -133,7 +133,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Most Used Tags</h2>
             <div className="flex flex-wrap gap-2">
               {basic_stats.most_used_tags.map(({ tag, count }) => (
-                <Badge key={tag} variant="secondary" className="text-sm bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-150 dark:hover:bg-zinc-700 transition-colors border border-gray-200 dark:border-zinc-700">
+                <Badge key={tag} variant="secondary" className="text-sm bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-150 dark:hover:bg-zinc-700 transition-colors border border-gray-200 dark:border-zinc-700 cursor-pointer">
                   {tag} ({count})
                 </Badge>
               ))}
@@ -142,15 +142,15 @@ export default function Dashboard() {
         )}
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left Column */}
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             <WeaknessCard weaknesses={weaknesses} />
             <TodaysRevision revision={todays_revision} />
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             <RecentActivity activities={recent_activity} />
           </div>
         </div>
