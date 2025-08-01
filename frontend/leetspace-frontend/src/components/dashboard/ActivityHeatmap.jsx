@@ -27,10 +27,10 @@ export function ActivityHeatmap({ data = [], className = "" }) {
   const getIntensityClass = (level) => {
     const intensityClasses = {
       0: "bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700",
-      1: "bg-gray-200 dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600",
-      2: "bg-gray-300 dark:bg-zinc-600 border border-gray-400 dark:border-zinc-500", 
-      3: "bg-gray-400 dark:bg-zinc-500 border border-gray-500 dark:border-zinc-400",
-      4: "bg-gray-500 dark:bg-zinc-400 border border-gray-600 dark:border-zinc-300"
+      1: "bg-green-100 dark:bg-green-900/40 border border-green-200 dark:border-green-800/50",
+      2: "bg-green-200 dark:bg-green-800/60 border border-green-300 dark:border-green-700/70", 
+      3: "bg-green-300 dark:bg-green-700/80 border border-green-400 dark:border-green-600/80",
+      4: "bg-green-400 dark:bg-green-600/90 border border-green-500 dark:border-green-500/90"
     };
     return intensityClasses[level] || intensityClasses[0];
   };
