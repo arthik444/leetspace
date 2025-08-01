@@ -8,7 +8,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
       <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <AlertTriangle className="h-5 w-5 text-green-500 dark:text-green-400" />
+            <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             Weaknesses
           </CardTitle>
         </CardHeader>
@@ -30,7 +30,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
     <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-          <AlertTriangle className="h-5 w-5 text-orange-500 dark:text-orange-400" />
+          <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           Weaknesses
         </CardTitle>
       </CardHeader>
@@ -41,7 +41,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm text-gray-900 dark:text-white">{weakness.tag}</span>
-                  <Badge variant="destructive" className="text-xs bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800">
+                  <Badge variant="destructive" className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
                     {weakness.retry_rate}%
                   </Badge>
                 </div>
@@ -52,7 +52,7 @@ export function WeaknessCard({ weaknesses = [], className = "" }) {
               <div className="ml-4">
                 <div className="w-16 bg-gray-200 dark:bg-zinc-700 rounded-full h-2 border border-gray-300 dark:border-zinc-600">
                   <div 
-                    className="bg-red-500 dark:bg-red-400 h-2 rounded-full transition-all"
+                    className="bg-orange-400 dark:bg-orange-500 h-2 rounded-full transition-all"
                     style={{ width: `${Math.min(weakness.retry_rate, 100)}%` }}
                   />
                 </div>

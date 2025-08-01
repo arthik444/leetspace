@@ -12,7 +12,7 @@ export function TodaysRevision({ revision, className = "" }) {
       <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <BookOpen className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+            <BookOpen className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             Today's Revision
           </CardTitle>
         </CardHeader>
@@ -48,10 +48,10 @@ export function TodaysRevision({ revision, className = "" }) {
   return (
     <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-          <BookOpen className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-          Today's Revision
-        </CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
+            <BookOpen className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            Today's Revision
+          </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -98,7 +98,7 @@ export function TodaysRevision({ revision, className = "" }) {
           <div className="flex gap-2">
             <Button 
               onClick={handleReview}
-              className="flex-1 text-sm h-8 bg-blue-600 dark:bg-blue-500 text-white dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600"
+              className="flex-1 text-sm h-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
               size="sm"
             >
               <ExternalLink className="h-3 w-3 mr-1" />
@@ -107,7 +107,7 @@ export function TodaysRevision({ revision, className = "" }) {
             <Button 
               onClick={handleSkip}
               variant="outline" 
-              className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+              className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800"
               size="sm"
             >
               Skip Today
@@ -115,8 +115,8 @@ export function TodaysRevision({ revision, className = "" }) {
           </div>
 
           {/* Spaced Repetition Info */}
-          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
-            <p className="text-xs text-blue-800 dark:text-blue-200">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               📚 Spaced repetition helps you retain knowledge longer
             </p>
           </div>

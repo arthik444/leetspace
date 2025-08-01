@@ -48,7 +48,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-white p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-gray-400" />
             <span className="text-gray-600 dark:text-gray-400">Loading dashboard...</span>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-white p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-2">Error</h2>
+            <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Error</h2>
             <p className="text-gray-600 dark:text-gray-400">{error}</p>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Most Used Tags</h2>
             <div className="flex flex-wrap gap-2">
               {basic_stats.most_used_tags.map(({ tag, count }) => (
-                <Badge key={tag} variant="secondary" className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors border border-blue-200 dark:border-blue-700">
+                <Badge key={tag} variant="secondary" className="text-sm bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-150 dark:hover:bg-zinc-700 transition-colors border border-gray-200 dark:border-zinc-700">
                   {tag} ({count})
                 </Badge>
               ))}

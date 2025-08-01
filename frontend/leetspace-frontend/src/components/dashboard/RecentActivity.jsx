@@ -11,7 +11,7 @@ export function RecentActivity({ activities = [], className = "" }) {
       <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <Clock className="h-5 w-5 text-purple-500 dark:text-purple-400" />
+            <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             Recent Activity
           </CardTitle>
         </CardHeader>
@@ -42,10 +42,10 @@ export function RecentActivity({ activities = [], className = "" }) {
   return (
     <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-          <Clock className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-          Recent Activity
-        </CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
+            <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            Recent Activity
+          </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -59,7 +59,7 @@ export function RecentActivity({ activities = [], className = "" }) {
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="font-medium text-sm truncate text-gray-900 dark:text-white">{activity.title}</h4>
                   {activity.retry_later && (
-                    <RotateCcw className="h-3 w-3 text-orange-500 dark:text-orange-400 flex-shrink-0" title="Marked for retry" />
+                    <RotateCcw className="h-3 w-3 text-gray-500 dark:text-gray-400 flex-shrink-0" title="Marked for retry" />
                   )}
                 </div>
                 
