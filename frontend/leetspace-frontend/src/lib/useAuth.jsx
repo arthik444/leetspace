@@ -15,10 +15,14 @@ export function AuthProvider({ children }) {
   // Register user with backend
   const registerUserWithBackend = async (firebaseUser) => {
     try {
+      console.log('🔄 Registering user with backend...', firebaseUser.uid);
       const idToken = await firebaseUser.getIdToken();
       setToken(idToken);
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/auth/register`, {
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/auth/register`;
+      console.log('📡 Making request to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,14 +35,32 @@ export function AuthProvider({ children }) {
         })
       });
 
+      console.log('📥 Backend response status:', response.status);
+
       if (response.ok) {
         const userProfile = await response.json();
+        console.log('✅ User profile created/updated:', userProfile);
         setUserProfile(userProfile);
       } else {
-        console.error('Failed to register user with backend');
+        const errorText = await response.text();
+        console.error('❌ Failed to register user with backend:', response.status, errorText);
+        // For development, create a minimal profile to allow authentication
+        setUserProfile({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          display_name: firebaseUser.displayName,
+          created_at: new Date().toISOString()
+        });
       }
     } catch (error) {
-      console.error('Error registering user with backend:', error);
+      console.error('❌ Error registering user with backend:', error);
+      // For development, create a minimal profile to allow authentication
+      setUserProfile({
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        display_name: firebaseUser.displayName,
+        created_at: new Date().toISOString()
+      });
     }
   };
 
@@ -135,7 +157,7 @@ export function AuthProvider({ children }) {
     getToken,
     logout,
     updateProfile,
-    isAuthenticated: !!user && !!userProfile
+    isAuthenticated: !!user // For now, just check if Firebase user exists
   };
 
   return (

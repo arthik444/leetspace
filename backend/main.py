@@ -44,9 +44,9 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(problems.router, prefix="/api/problems", tags=["Problems"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
-# @app.get("/")
-# def root():
-#     return {"message": "Welcome to LeetSpace API 🚀"}
+@app.get("/")
+def root():
+    return {"message": "Welcome to LeetSpace API 🚀", "status": "healthy"}
 
 # @app.get("/test-db")
 # async def test_db():
