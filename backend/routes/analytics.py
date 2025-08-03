@@ -6,11 +6,12 @@ from auth.verify_token import get_current_active_user
 from models.user import UserInDB
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
+from db.mongo import db
 
 router = APIRouter()
 
-# Import from problems storage (in real app, this would be shared database)
-from routes.problems import problems_db, user_problems
+# MongoDB collection
+problems_collection = db["problems"]
 
 @router.get("/dashboard")
 async def get_dashboard_stats(current_user: UserInDB = Depends(get_current_active_user)):
@@ -20,9 +21,12 @@ async def get_dashboard_stats(current_user: UserInDB = Depends(get_current_activ
     try:
         user_id = str(current_user.id)
         
-        # Get all problems for the user
-        user_problem_ids = user_problems.get(user_id, [])
-        problems = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
+        # Get all problems for the user from MongoDB
+        cursor = problems_collection.find({"user_id": user_id})
+        problems = []
+        async for doc in cursor:
+            doc["id"] = str(doc["_id"])
+            problems.append(doc)
 
         if not problems:
             return {
@@ -66,7 +70,17 @@ def calculate_basic_stats(problems: List[Dict]) -> Dict[str, Any]:
     retry_count = sum(1 for p in problems if p.get("retry_later", False))
     
     # Count unique active days
-    dates = [p.get("created_at", datetime.utcnow()).date() for p in problems if p.get("created_at")]
+    dates = []
+    for p in problems:
+        created_at = p.get("created_at")
+        if created_at:
+            if isinstance(created_at, datetime):
+                dates.append(created_at.date())
+            elif isinstance(created_at, str):
+                try:
+                    dates.append(datetime.fromisoformat(created_at.replace('Z', '+00:00')).date())
+                except:
+                    pass
     total_active_days = len(set(dates))
     
     # Most used tags
@@ -180,9 +194,18 @@ def generate_activity_heatmap(problems: List[Dict]) -> List[Dict[str, Any]]:
     # Group problems by date
     date_counts = defaultdict(int)
     for problem in problems:
-        if problem.get("created_at"):
-            date = problem["created_at"].date() if isinstance(problem["created_at"], datetime) else datetime.fromisoformat(str(problem["created_at"])).date()
-            date_counts[date] += 1
+        created_at = problem.get("created_at")
+        if created_at:
+            try:
+                if isinstance(created_at, datetime):
+                    date = created_at.date()
+                elif isinstance(created_at, str):
+                    date = datetime.fromisoformat(created_at.replace('Z', '+00:00')).date()
+                else:
+                    continue
+                date_counts[date] += 1
+            except:
+                continue
     
     # Generate last 90 days of data
     today = datetime.now().date()
@@ -205,20 +228,34 @@ def get_recent_activity(problems: List[Dict]) -> List[Dict[str, Any]]:
         return []
     
     # Sort by creation date, most recent first
-    sorted_problems = sorted(
-        problems,
-        key=lambda x: x.get("created_at", datetime.min),
-        reverse=True
-    )
+    def get_sort_key(x):
+        created_at = x.get("created_at")
+        if isinstance(created_at, datetime):
+            return created_at
+        elif isinstance(created_at, str):
+            try:
+                return datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            except:
+                return datetime.min
+        return datetime.min
+    
+    sorted_problems = sorted(problems, key=get_sort_key, reverse=True)
     
     recent_activity = []
     for problem in sorted_problems[:10]:  # Last 10 activities
+        created_at = problem.get("created_at")
+        date_str = None
+        if isinstance(created_at, datetime):
+            date_str = created_at.isoformat()
+        elif isinstance(created_at, str):
+            date_str = created_at
+        
         recent_activity.append({
             "id": problem.get("id"),
             "title": problem.get("title"),
             "difficulty": problem.get("difficulty"),
             "tags": problem.get("tags", []),
-            "date": problem.get("created_at").isoformat() if problem.get("created_at") else None,
+            "date": date_str,
             "action": "solved"
         })
     
@@ -228,8 +265,12 @@ def get_recent_activity(problems: List[Dict]) -> List[Dict[str, Any]]:
 async def get_stats_summary(current_user: UserInDB = Depends(get_current_active_user)):
     """Get quick stats summary"""
     user_id = str(current_user.id)
-    user_problem_ids = user_problems.get(user_id, [])
-    problems = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
+    
+    # Get all problems for the user from MongoDB
+    cursor = problems_collection.find({"user_id": user_id})
+    problems = []
+    async for doc in cursor:
+        problems.append(doc)
     
     if not problems:
         return {
@@ -243,11 +284,32 @@ async def get_stats_summary(current_user: UserInDB = Depends(get_current_active_
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
     
-    this_week = len([p for p in problems if p.get("created_at") and p["created_at"] >= week_ago])
-    this_month = len([p for p in problems if p.get("created_at") and p["created_at"] >= month_ago])
+    this_week = 0
+    this_month = 0
+    oldest_date = now
     
-    # Calculate average per week (simple estimation)
-    weeks_active = max(1, (now - min(p.get("created_at", now) for p in problems)).days / 7)
+    for p in problems:
+        created_at = p.get("created_at")
+        if created_at:
+            if isinstance(created_at, datetime):
+                date = created_at
+            elif isinstance(created_at, str):
+                try:
+                    date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                except:
+                    continue
+            else:
+                continue
+                
+            if date >= week_ago:
+                this_week += 1
+            if date >= month_ago:
+                this_month += 1
+            if date < oldest_date:
+                oldest_date = date
+    
+    # Calculate average per week
+    weeks_active = max(1, (now - oldest_date).days / 7)
     average_per_week = len(problems) / weeks_active if weeks_active > 0 else 0
     
     return {
