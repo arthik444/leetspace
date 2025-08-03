@@ -10,7 +10,7 @@ from db.user_operations import find_user_by_email
 import os
 
 # Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+SECRET_KEY = os.getenv("SECRET_KEY", "your-super-secret-jwt-key-change-in-production-12345")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -30,6 +30,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token."""
+    print(f"🔐 Creating token with SECRET_KEY: {SECRET_KEY[:20]}...")
+    print(f"📋 Token data: {data}")
+    
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -37,7 +40,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
+    print(f"📋 Final payload: {to_encode}")
+    
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    print(f"✅ Token created: {encoded_jwt[:50]}...")
     return encoded_jwt
 
 async def get_user_by_email(email: str) -> Optional[UserInDB]:
@@ -63,17 +69,32 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     try:
         token = credentials.credentials
+        print(f"🔍 Verifying token: {token[:50]}...")
+        print(f"🔑 Using SECRET_KEY: {SECRET_KEY[:20]}...")
+        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"✅ Token decoded successfully: {payload}")
+        
         email: str = payload.get("sub")
         if email is None:
+            print("❌ No email in token payload")
             raise credentials_exception
+        
+        print(f"📧 Looking up user: {email}")
         token_data = TokenData(email=email)
-    except JWTError:
+    except JWTError as e:
+        print(f"❌ JWT Error: {e}")
+        raise credentials_exception
+    except Exception as e:
+        print(f"❌ Unexpected error in token verification: {e}")
         raise credentials_exception
     
     user = await get_user_by_email(email=token_data.email)
     if user is None:
+        print(f"❌ User not found: {token_data.email}")
         raise credentials_exception
+    
+    print(f"✅ User authenticated: {user.email}")
     return user
 
 async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)) -> UserInDB:
