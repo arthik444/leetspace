@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useAuth } from "@/lib/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
@@ -16,6 +16,10 @@ export function LoginForm({ className, ...props }) {
   
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the intended destination from location state, default to home
+  const from = location.state?.from?.pathname || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,12 +30,13 @@ export function LoginForm({ className, ...props }) {
       if (isLogin) {
         // Login
         await login(email, password);
-        navigate("/"); // Redirect to home after successful login
       } else {
         // Register
         await register(email, password, fullName);
-        navigate("/"); // Redirect to home after successful registration
       }
+      
+      // Redirect to intended destination or home
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Authentication error:", error);
       setErrorMsg(error.message || "Something went wrong. Please try again.");

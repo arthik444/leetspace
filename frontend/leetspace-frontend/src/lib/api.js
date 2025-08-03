@@ -32,11 +32,29 @@ class ApiService {
 
   // Generic request method
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = `${this.baseURL}${endpoint}`;
+    
+    // Handle query parameters
+    if (options.params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          searchParams.append(key, value);
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
     const config = {
       headers: this.getAuthHeaders(),
       ...options,
     };
+    
+    // Remove params from config as it's already handled in URL
+    delete config.params;
 
     try {
       const response = await fetch(url, config);
@@ -85,6 +103,46 @@ class ApiService {
   async logout() {
     this.setToken(null);
     return { success: true };
+  }
+
+  // Analytics endpoints
+  async getDashboardData(userId) {
+    return this.request('/analytics/dashboard', {
+      method: 'GET',
+      params: { user_id: userId }
+    });
+  }
+
+  // Problems endpoints  
+  async getProblems(params = {}) {
+    return this.request('/problems', {
+      method: 'GET',
+      params
+    });
+  }
+
+  async getProblem(id) {
+    return this.request(`/problems/${id}`);
+  }
+
+  async createProblem(problemData) {
+    return this.request('/problems', {
+      method: 'POST',
+      body: JSON.stringify(problemData),
+    });
+  }
+
+  async updateProblem(id, problemData) {
+    return this.request(`/problems/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(problemData),
+    });
+  }
+
+  async deleteProblem(id) {
+    return this.request(`/problems/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   // Check if user is authenticated

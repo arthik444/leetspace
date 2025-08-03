@@ -6,10 +6,12 @@ import Problems from './pages/Problems';
 import AddProblem from './pages/AddProblem';
 import ProblemDetail from './pages/problemDetail';
 import EditProblem from "./pages/EditProblem";
+import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/lib/useAuth";
 import { Toaster } from "sonner";
 import "./index.css" 
+
 function AppWrapper() {
   return (
     <ThemeProvider>
@@ -34,23 +36,44 @@ function AppWrapper() {
 
   );
 }
+
 function App() {
-
   const location = useLocation();
-
   const shouldShowNavbar = location.pathname !== "/auth";
 
-  
   return (
     <>
       {shouldShowNavbar && <Navbar />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Public routes */}
         <Route path="/auth" element={<Auth />} />
-        <Route path="/problems" element={<Problems />} />
-        <Route path="/add-problem" element={<AddProblem />} />
-        <Route path="/problems/:id" element={<ProblemDetail />} />
-        <Route path="/edit-problem/:id" element={<EditProblem />} />
+        
+        {/* Protected routes - require authentication */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        } />
+        <Route path="/problems" element={
+          <ProtectedRoute>
+            <Problems />
+          </ProtectedRoute>
+        } />
+        <Route path="/add-problem" element={
+          <ProtectedRoute>
+            <AddProblem />
+          </ProtectedRoute>
+        } />
+        <Route path="/problems/:id" element={
+          <ProtectedRoute>
+            <ProblemDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit-problem/:id" element={
+          <ProtectedRoute>
+            <EditProblem />
+          </ProtectedRoute>
+        } />
       </Routes>
     </>
   );
