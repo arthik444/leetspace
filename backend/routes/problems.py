@@ -66,33 +66,50 @@ async def get_problems(
     current_user: UserInDB = Depends(get_current_active_user)
 ):
     # Get problems for the authenticated user
-    if not current_user or not current_user.id:
-        raise HTTPException(status_code=401, detail="Invalid user authentication")
-    
-    query = {"user_id": str(current_user.id)}
+    try:
+        if not current_user or not current_user.id:
+            raise HTTPException(status_code=401, detail="Invalid user authentication")
+        
+        print(f"🔍 Getting problems for user: {current_user.email} (ID: {current_user.id})")
+        
+        query = {"user_id": str(current_user.id)}
 
-    if difficulty:
-        query["difficulty"] = difficulty
-    if retry_later is not None:
-        query["retry_later"] = retry_later
-    if tags:
-        query["tags"] = {"$all": tags}
-    if search:
-        query["$or"] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"notes": {"$regex": search, "$options": "i"}},
-        ]
+        if difficulty:
+            query["difficulty"] = difficulty
+        if retry_later is not None:
+            query["retry_later"] = retry_later
+        if tags:
+            query["tags"] = {"$all": tags}
+        if search:
+            query["$or"] = [
+                {"title": {"$regex": search, "$options": "i"}},
+                {"notes": {"$regex": search, "$options": "i"}"},
+            ]
 
-    sort_order = -1 if order == "desc" else 1
-    cursor = collection.find(query).sort(sort_by, sort_order)
+        print(f"🔍 Query: {query}")
+        
+        sort_order = -1 if order == "desc" else 1
+        cursor = collection.find(query).sort(sort_by, sort_order)
 
-    problems = []
-    async for doc in cursor:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-        problems.append(ProblemInDB(**doc))
+        problems = []
+        count = 0
+        async for doc in cursor:
+            count += 1
+            print(f"🔍 Processing document {count}: {doc.get('title', 'No title')}")
+            doc["id"] = str(doc["_id"])
+            del doc["_id"]
+            problems.append(ProblemInDB(**doc))
 
-    return problems
+        print(f"✅ Found {len(problems)} problems")
+        return problems
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        print(f"❌ Error in get_problems: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to fetch problems: {str(e)}")
 
 # GET stats
 @router.get("/stats")

@@ -1,7 +1,7 @@
 # schemas/problem.py
 
 from pydantic import BaseModel, HttpUrl, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import date
 
 class Solution(BaseModel):
@@ -14,7 +14,7 @@ class ProblemBase(BaseModel):
     difficulty: str = Field(..., example="Easy")
     tags: List[str] = Field(default_factory=list)
     # time_taken_min: Optional[int] = Field(..., example=20)
-    date_solved: date = Field(..., example="2025-06-24")
+    date_solved: Union[date, str] = Field(..., example="2024-01-15")
     notes: Optional[str] = Field(default=None, example="Used hashmap for lookup.")
     solutions: Optional[List[Solution]] = Field(default=None, example=["class Solution: ..."])
     # mistakes: Optional[str] = Field(default=None, example="Missed duplicate cases.")
@@ -31,7 +31,7 @@ class ProblemUpdate(BaseModel):
     difficulty: Optional[str]
     tags: Optional[List[str]]
     # time_taken_min: Optional[int]
-    date_solved: Optional[date]
+    date_solved: Optional[Union[date, str]]
     notes: Optional[str]
     solutions: Optional[List[Solution]]
     # mistakes: Optional[str]
