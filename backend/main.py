@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db.mongo import db
-from routes import problems, analytics  # Optional for now if not created
+from routes import problems, analytics,auth  # Optional for now if not created
 
 app = FastAPI()
 
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 # Include routers (optional if not made yet)
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])  # Added auth router
 app.include_router(problems.router, prefix="/api/problems", tags=["Problems"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 

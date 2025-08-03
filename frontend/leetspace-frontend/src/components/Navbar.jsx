@@ -1,23 +1,33 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+// import { useEffect, useState } from "react";
+// import { onAuthStateChanged, signOut } from "firebase/auth";
+// import { auth } from "@/lib/firebase";
+import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/components/ThemeProvider";
 import { Moon, Sun } from "lucide-react";
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser);
-    return () => unsub();
-  }, []);
+  // useEffect(() => {
+  //   const unsub = onAuthStateChanged(auth, setUser);
+  //   return () => unsub();
+  // }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/auth");
+    // await signOut(auth);
+    // navigate("/auth");
+    try {
+      await logout();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Navigate to auth page anyway
+      navigate("/auth");
+    }
   };
 
   return (
@@ -36,7 +46,15 @@ export default function Navbar() {
         </button>
 
         {user ? (
-          <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">Logout</button>
+          // <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">Logout</button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              {user.full_name || user.email}
+            </span>
+            <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">
+              Logout
+            </button>
+          </div>
         ) : (
           <Link to="/auth" className="underline">Login</Link>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
-import axios from 'axios';
+// import axios from 'axios';
+import apiService from '@/lib/api';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { WeaknessCard } from '@/components/dashboard/WeaknessCard';
@@ -18,32 +19,72 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?.uid) return;
+      // if (!user?.uid) return;
+      if (!isAuthenticated || !user?.id) {
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
-        const response = await axios.get('/api/analytics/dashboard', {
-          baseURL: 'http://localhost:8000',
-          params: { user_id: user.uid }
-        });
-        setData(response.data);
+        // const response = await axios.get('/api/analytics/dashboard', {
+        //   baseURL: 'http://localhost:8000',
+        //   params: { user_id: user.uid }
+        // });
+        // setData(response.data);
+        // Use simplified API method
+        const response = await apiService.getDashboardData(user.id);
+        setData(response);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
+        // setError('Failed to load dashboard data');
+        // Handle different types of errors
+        if (err.message.includes('401') || err.message.includes('unauthorized')) {
+          setError('Please log in to view dashboard data');
+        } else if (err.message.includes('404')) {
+          // Dashboard endpoint might not exist yet, show placeholder
+          console.log('Dashboard endpoint not implemented yet, showing placeholder data');
+          setData(null); // Will trigger placeholder view
+          setError(null);
+        } else {
+          setError('Failed to load dashboard data');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [user]);
+  }, [user,isAuthenticated]);
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-white p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold mb-4">Welcome to LeetSpace</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              Please log in to view your dashboard and track your progress.
+            </p>
+            <a 
+              href="/auth" 
+              className="inline-flex items-center px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              Log In / Sign Up
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
