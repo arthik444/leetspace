@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useAuth } from "@/lib/useAuth";
+import apiService from "@/lib/api";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/data-table/columns";
 import { DeleteProblemDialog } from "@/components/DeleteProblemDialog";
@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 export default function Problems() {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth(); 
+  const { user, isAuthenticated } = useAuth(); 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState(null);
@@ -23,28 +23,29 @@ export default function Problems() {
   // const user = "abc123";
   const fetchProblems = async () => {
     try {
-      const res = await axios.get(`/api/problems`, {
-        baseURL: "http://localhost:8000",
-        params: {
-          user_id: user.uid,
-          sort_by: "date_solved",
-          order: "desc",
-        },
+      setLoading(true);
+      // Use the authenticated API service
+      const data = await apiService.getProblems({
+        sortBy: "date",
+        sortOrder: "desc",
       });
-      setProblems(res.data);
-      console.log(res.data);
+      setProblems(data);
+      console.log("Fetched problems:", data);
     } catch (error) {
       console.error("Error fetching problems:", error);
+      toast.error("Failed to fetch problems: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.uid) {
+    if (isAuthenticated && user) {
       fetchProblems();
+    } else if (!isAuthenticated) {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
   const handleEdit = (problem) => {
     sessionStorage.setItem(`editProblemIntent-${problem.id}`, "fresh");
     navigate(`/edit-problem/${problem.id}`);
@@ -57,9 +58,7 @@ export default function Problems() {
 
   const confirmDelete = async (problemId) => {
     try {
-      await axios.delete(`/api/problems/${problemId}`, {
-        baseURL: "http://localhost:8000",
-      });
+      await apiService.deleteProblem(problemId);
       
       // Remove the problem from the local state
       setProblems(problems.filter(p => p.id !== problemId));
@@ -84,16 +83,7 @@ export default function Problems() {
 
   const updateProblem = async (problemId, updateData) => {
     try {
-      await axios.put(
-        `/api/problems/${problemId}`,
-        updateData,
-        {
-          baseURL: "http://localhost:8000",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await apiService.updateProblem(problemId, updateData);
       
       // Refresh the problems list
       await fetchProblems();

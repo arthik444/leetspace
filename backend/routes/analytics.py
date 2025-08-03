@@ -1,27 +1,28 @@
 # routes/analytics.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any
-from db.mongo import db
+from auth.verify_token import get_current_active_user
+from models.user import UserInDB
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 
 router = APIRouter()
-collection = db["problems"]
+
+# Import from problems storage (in real app, this would be shared database)
+from routes.problems import problems_db, user_problems
 
 @router.get("/dashboard")
-async def get_dashboard_stats(user_id: str):
+async def get_dashboard_stats(current_user: UserInDB = Depends(get_current_active_user)):
     """
-    Get comprehensive dashboard statistics for a user
+    Get comprehensive dashboard statistics for the authenticated user
     """
     try:
+        user_id = str(current_user.id)
+        
         # Get all problems for the user
-        cursor = collection.find({"user_id": user_id})
-        problems = []
-        async for doc in cursor:
-            doc["id"] = str(doc["_id"])
-            del doc["_id"]
-            problems.append(doc)
+        user_problem_ids = user_problems.get(user_id, [])
+        problems = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
 
         if not problems:
             return {
@@ -50,210 +51,208 @@ async def get_dashboard_stats(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 def calculate_basic_stats(problems: List[Dict]) -> Dict[str, Any]:
-    """Calculate total problems, retry count, active days, and difficulty breakdown"""
-    
-    # Total problems
+    """Calculate basic statistics from problems"""
     total_problems = len(problems)
     
-    # Retry later count
-    retry_count = sum(1 for p in problems if p.get("retry_later") == "Yes")
-    
-    # Total active days (unique dates)
-    unique_dates = set()
-    for problem in problems:
-        date_solved = problem.get("date_solved")
-        if date_solved:
-            unique_dates.add(date_solved)
-    total_active_days = len(unique_dates)
-    
-    # Difficulty breakdown
-    difficulty_counts = Counter(p.get("difficulty") for p in problems if p.get("difficulty"))
+    # Count difficulty breakdown
+    difficulty_counts = Counter(p.get("difficulty", "unknown") for p in problems)
     difficulty_breakdown = {
-        "easy": difficulty_counts.get("Easy", 0),
-        "medium": difficulty_counts.get("Medium", 0), 
-        "hard": difficulty_counts.get("Hard", 0)
+        "easy": difficulty_counts.get("easy", 0),
+        "medium": difficulty_counts.get("medium", 0), 
+        "hard": difficulty_counts.get("hard", 0)
     }
     
-    # Most used tags (keeping for the detailed section below)
-    all_tags = []
-    for problem in problems:
-        tags = problem.get("tags", [])
-        all_tags.extend(tags)
+    # Count retry later problems
+    retry_count = sum(1 for p in problems if p.get("retry_later", False))
     
-    tag_counts = Counter(all_tags)
-    most_used_tags = [
-        {"tag": tag, "count": count} 
-        for tag, count in tag_counts.most_common(5)
-    ]
+    # Count unique active days
+    dates = [p.get("created_at", datetime.utcnow()).date() for p in problems if p.get("created_at")]
+    total_active_days = len(set(dates))
+    
+    # Most used tags
+    all_tags = []
+    for p in problems:
+        all_tags.extend(p.get("tags", []))
+    most_used_tags = [tag for tag, count in Counter(all_tags).most_common(5)]
     
     return {
         "total_problems": total_problems,
         "retry_count": retry_count,
         "total_active_days": total_active_days,
         "difficulty_breakdown": difficulty_breakdown,
-        "most_used_tags": most_used_tags  # Keep for detailed section
+        "most_used_tags": most_used_tags
     }
 
 def detect_weaknesses(problems: List[Dict]) -> List[Dict[str, Any]]:
-    """Detect weakness areas based on retry rate > 30%"""
-    
-    tag_stats = defaultdict(lambda: {"total": 0, "retry_count": 0})
-    
-    # Calculate retry rate per tag
-    for problem in problems:
-        tags = problem.get("tags", [])
-        is_retry = problem.get("retry_later") == "Yes"
-        
-        for tag in tags:
-            tag_stats[tag]["total"] += 1
-            if is_retry:
-                tag_stats[tag]["retry_count"] += 1
-    
-    # Find weakness areas (retry rate > 30% and at least 3 problems)
+    """Detect patterns that suggest weaknesses"""
     weaknesses = []
-    for tag, stats in tag_stats.items():
-        if stats["total"] >= 3:  # Need minimum problems to be meaningful
-            retry_rate = stats["retry_count"] / stats["total"]
-            if retry_rate > 0.30:  # 30% threshold
+    
+    if not problems:
+        return weaknesses
+    
+    # Analyze retry patterns
+    retry_problems = [p for p in problems if p.get("retry_later", False)]
+    if retry_problems:
+        # Group by tags to find problem areas
+        retry_tags = []
+        for p in retry_problems:
+            retry_tags.extend(p.get("tags", []))
+        
+        tag_counts = Counter(retry_tags)
+        for tag, count in tag_counts.most_common(3):
+            if count >= 2:  # At least 2 problems with this tag need retry
                 weaknesses.append({
-                    "tag": tag,
-                    "retry_rate": round(retry_rate * 100),
-                    "total_problems": stats["total"],
-                    "retry_count": stats["retry_count"]
+                    "type": "tag",
+                    "value": tag,
+                    "count": count,
+                    "description": f"Multiple problems with '{tag}' marked for retry"
                 })
     
-    # Sort by retry rate (worst first)
-    weaknesses.sort(key=lambda x: x["retry_rate"], reverse=True)
+    # Analyze difficulty patterns
+    difficulty_counts = Counter(p.get("difficulty") for p in problems)
+    total = len(problems)
+    
+    for diff in ["easy", "medium", "hard"]:
+        count = difficulty_counts.get(diff, 0)
+        percentage = (count / total) * 100 if total > 0 else 0
+        
+        if diff == "easy" and percentage < 30 and total >= 10:
+            weaknesses.append({
+                "type": "difficulty",
+                "value": diff,
+                "count": count,
+                "description": "Consider practicing more easy problems to build confidence"
+            })
+        elif diff == "hard" and percentage > 60 and total >= 5:
+            weaknesses.append({
+                "type": "difficulty", 
+                "value": diff,
+                "count": count,
+                "description": "You might be jumping to hard problems too quickly"
+            })
+    
     return weaknesses
 
 def suggest_todays_revision(problems: List[Dict]) -> Dict[str, Any]:
-    """Suggest a problem to revise today using spaced repetition"""
-    
-    retry_problems = [p for p in problems if p.get("retry_later") == "Yes"]
-    
-    if not retry_problems:
+    """Suggest a problem for today's revision"""
+    if not problems:
         return None
     
-    today = datetime.now()
+    # Find problems marked for retry
+    retry_problems = [p for p in problems if p.get("retry_later", False)]
     
-    # Calculate priority scores for spaced repetition
-    suggestions = []
-    for problem in retry_problems:
-        try:
-            solved_date = datetime.strptime(problem["date_solved"], "%Y-%m-%d")
-            days_since = (today - solved_date).days
-            
-            # Spaced repetition intervals: 1, 3, 7, 14, 30 days
-            intervals = [1, 3, 7, 14, 30]
-            
-            # Find the interval this problem should be reviewed at
-            priority_score = 0
-            for interval in intervals:
-                if days_since >= interval:
-                    priority_score = days_since - interval + interval  # Overdue bonus
-                
-            # Add difficulty bonus (harder problems need more review)
-            difficulty_bonus = {"Easy": 1, "Medium": 2, "Hard": 3}
-            priority_score *= difficulty_bonus.get(problem.get("difficulty"), 1)
-            
-            suggestions.append({
-                "problem": problem,
-                "priority_score": priority_score,
-                "days_since": days_since
-            })
-            
-        except (ValueError, TypeError):
-            continue  # Skip problems with invalid dates
+    if retry_problems:
+        # Sort by date solved (oldest first for revision)
+        retry_problems.sort(key=lambda x: x.get("created_at", datetime.min))
+        problem = retry_problems[0]
+        
+        return {
+            "id": problem.get("id"),
+            "title": problem.get("title"),
+            "difficulty": problem.get("difficulty"),
+            "tags": problem.get("tags", []),
+            "reason": "Marked for retry",
+            "url": problem.get("url")
+        }
     
-    if not suggestions:
-        return None
+    # If no retry problems, suggest oldest easy problem
+    easy_problems = [p for p in problems if p.get("difficulty") == "easy"]
+    if easy_problems:
+        easy_problems.sort(key=lambda x: x.get("created_at", datetime.min))
+        problem = easy_problems[0]
+        
+        return {
+            "id": problem.get("id"),
+            "title": problem.get("title"), 
+            "difficulty": problem.get("difficulty"),
+            "tags": problem.get("tags", []),
+            "reason": "Revision of fundamentals",
+            "url": problem.get("url")
+        }
     
-    # Return the highest priority problem
-    suggestions.sort(key=lambda x: x["priority_score"], reverse=True)
-    best_suggestion = suggestions[0]
-    
-    return {
-        "id": best_suggestion["problem"]["id"],
-        "title": best_suggestion["problem"]["title"],
-        "difficulty": best_suggestion["problem"]["difficulty"],
-        "tags": best_suggestion["problem"].get("tags", []),
-        "days_since_solved": best_suggestion["days_since"]
-    }
+    return None
 
 def generate_activity_heatmap(problems: List[Dict]) -> List[Dict[str, Any]]:
-    """Generate activity heatmap data for the last 365 days"""
-    
-    today = datetime.now()
-    start_date = today - timedelta(days=365)
-    
-    # Count problems solved per date
-    date_counts = defaultdict(int)
-    for problem in problems:
-        try:
-            solved_date = datetime.strptime(problem["date_solved"], "%Y-%m-%d")
-            if solved_date >= start_date:
-                date_str = solved_date.strftime("%Y-%m-%d")
-                date_counts[date_str] += 1
-        except (ValueError, TypeError):
-            continue
-    
-    # Generate heatmap data
-    heatmap_data = []
-    current_date = start_date
-    
-    while current_date <= today:
-        date_str = current_date.strftime("%Y-%m-%d")
-        count = date_counts.get(date_str, 0)
-        
-        heatmap_data.append({
-            "date": date_str,
-            "count": count,
-            "level": min(count, 4)  # 0-4 intensity levels for styling
-        })
-        
-        current_date += timedelta(days=1)
-    
-    return heatmap_data
-
-def get_recent_activity(problems: List[Dict]) -> List[Dict[str, Any]]:
-    """Get the 5 most recently solved problems"""
-    
-    # Sort by date_solved (most recent first)
-    try:
-        sorted_problems = sorted(
-            problems,
-            key=lambda x: datetime.strptime(x["date_solved"], "%Y-%m-%d"),
-            reverse=True
-        )
-    except (ValueError, TypeError):
-        # If date parsing fails, return empty
+    """Generate activity heatmap data"""
+    if not problems:
         return []
     
-    recent = sorted_problems[:5]
+    # Group problems by date
+    date_counts = defaultdict(int)
+    for problem in problems:
+        if problem.get("created_at"):
+            date = problem["created_at"].date() if isinstance(problem["created_at"], datetime) else datetime.fromisoformat(str(problem["created_at"])).date()
+            date_counts[date] += 1
     
-    # Format for frontend
-    formatted_recent = []
-    for problem in recent:
-        try:
-            solved_date = datetime.strptime(problem["date_solved"], "%Y-%m-%d")
-            days_ago = (datetime.now() - solved_date).days
-            
-            if days_ago == 0:
-                time_ago = "Today"
-            elif days_ago == 1:
-                time_ago = "1 day ago"
-            else:
-                time_ago = f"{days_ago} days ago"
-            
-            formatted_recent.append({
-                "id": problem["id"],
-                "title": problem["title"],
-                "difficulty": problem["difficulty"],
-                "tags": problem.get("tags", [])[:3],  # Limit to 3 tags
-                "time_ago": time_ago,
-                "retry_later": problem.get("retry_later") == "Yes"
-            })
-        except (ValueError, TypeError):
-            continue
+    # Generate last 90 days of data
+    today = datetime.now().date()
+    heatmap_data = []
     
-    return formatted_recent
+    for i in range(90):
+        date = today - timedelta(days=i)
+        count = date_counts.get(date, 0)
+        heatmap_data.append({
+            "date": date.isoformat(),
+            "count": count,
+            "level": min(count, 4)  # Cap at level 4 for visualization
+        })
+    
+    return list(reversed(heatmap_data))  # Chronological order
+
+def get_recent_activity(problems: List[Dict]) -> List[Dict[str, Any]]:
+    """Get recent activity"""
+    if not problems:
+        return []
+    
+    # Sort by creation date, most recent first
+    sorted_problems = sorted(
+        problems,
+        key=lambda x: x.get("created_at", datetime.min),
+        reverse=True
+    )
+    
+    recent_activity = []
+    for problem in sorted_problems[:10]:  # Last 10 activities
+        recent_activity.append({
+            "id": problem.get("id"),
+            "title": problem.get("title"),
+            "difficulty": problem.get("difficulty"),
+            "tags": problem.get("tags", []),
+            "date": problem.get("created_at").isoformat() if problem.get("created_at") else None,
+            "action": "solved"
+        })
+    
+    return recent_activity
+
+@router.get("/stats/summary")
+async def get_stats_summary(current_user: UserInDB = Depends(get_current_active_user)):
+    """Get quick stats summary"""
+    user_id = str(current_user.id)
+    user_problem_ids = user_problems.get(user_id, [])
+    problems = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
+    
+    if not problems:
+        return {
+            "total_problems": 0,
+            "this_week": 0,
+            "this_month": 0,
+            "average_per_week": 0
+        }
+    
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    
+    this_week = len([p for p in problems if p.get("created_at") and p["created_at"] >= week_ago])
+    this_month = len([p for p in problems if p.get("created_at") and p["created_at"] >= month_ago])
+    
+    # Calculate average per week (simple estimation)
+    weeks_active = max(1, (now - min(p.get("created_at", now) for p in problems)).days / 7)
+    average_per_week = len(problems) / weeks_active if weeks_active > 0 else 0
+    
+    return {
+        "total_problems": len(problems),
+        "this_week": this_week,
+        "this_month": this_month,
+        "average_per_week": round(average_per_week, 1)
+    }

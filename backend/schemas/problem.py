@@ -1,8 +1,8 @@
 # schemas/problem.py
 
-from pydantic import BaseModel, HttpUrl, Field
+from pydantic import BaseModel, HttpUrl, Field, ConfigDict
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 
 class Solution(BaseModel):
     language: str
@@ -11,36 +11,31 @@ class Solution(BaseModel):
 class ProblemBase(BaseModel):
     title: str = Field(..., example="Two Sum")
     url: HttpUrl = Field(..., example="https://leetcode.com/problems/two-sum/")
-    difficulty: str = Field(..., example="Easy")
+    difficulty: str = Field(..., example="easy")
     tags: List[str] = Field(default_factory=list)
-    # time_taken_min: Optional[int] = Field(..., example=20)
-    date_solved: date = Field(..., example="2025-06-24")
+    date_solved: Optional[date] = Field(default=None, example="2025-06-24")
     notes: Optional[str] = Field(default=None, example="Used hashmap for lookup.")
-    solutions: Optional[List[Solution]] = Field(default=None, example=["class Solution: ..."])
-    # mistakes: Optional[str] = Field(default=None, example="Missed duplicate cases.")
-    retry_later: str = Field(default=None, example="Yes")
-
+    solutions: Optional[List[Solution]] = Field(default=None)
+    retry_later: Optional[bool] = Field(default=False, example=False)
 
 class ProblemCreate(ProblemBase):
-    user_id: str = Field(..., example="abc123")
-
+    # user_id is automatically added from authentication, not provided by user
+    pass
 
 class ProblemUpdate(BaseModel):
-    title: Optional[str]
-    url: Optional[HttpUrl]
-    difficulty: Optional[str]
-    tags: Optional[List[str]]
-    # time_taken_min: Optional[int]
-    date_solved: Optional[date]
-    notes: Optional[str]
-    solutions: Optional[List[Solution]]
-    # mistakes: Optional[str]
-    retry_later: Optional[str]
-
+    title: Optional[str] = None
+    url: Optional[HttpUrl] = None
+    difficulty: Optional[str] = None
+    tags: Optional[List[str]] = None
+    date_solved: Optional[date] = None
+    notes: Optional[str] = None
+    solutions: Optional[List[Solution]] = None
+    retry_later: Optional[bool] = None
 
 class ProblemInDB(ProblemBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     user_id: str
-
-    class Config:
-        orm_mode = True
+    created_at: datetime
+    updated_at: datetime

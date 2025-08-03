@@ -3,34 +3,47 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from typing import List, Optional
-from db.mongo import db
+from auth.verify_token import get_current_active_user
+from models.user import UserInDB
 from schemas.problem import ProblemCreate, ProblemInDB, ProblemUpdate
-from bson import ObjectId
 from datetime import datetime
 from collections import Counter
 from fastapi.responses import JSONResponse
 
+# Temporary in-memory storage for problems (replace with MongoDB later)
+problems_db = {}  # {problem_id: problem_data}
+user_problems = {}  # {user_id: [problem_ids]}
 
 router = APIRouter()
 
-collection = db["problems"]
+def get_next_problem_id():
+    """Generate next problem ID"""
+    return str(len(problems_db) + 1)
 
 # POST a problem for a user
-
 @router.post("/", response_model=ProblemInDB)
-async def add_problem(problem: ProblemCreate):
+async def add_problem(
+    problem: ProblemCreate, 
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    """Add a new problem for the authenticated user"""
     problem_dict = jsonable_encoder(problem)
-
+    
+    # Add user_id and metadata
+    problem_dict["user_id"] = str(current_user.id)
+    problem_dict["created_at"] = datetime.utcnow()
+    problem_dict["updated_at"] = datetime.utcnow()
+    
+    # Check for conflicts
     conflicts = []
-
-    title_conflict = await collection.find_one({"title": problem_dict["title"]})
-    if title_conflict:
-        conflicts.append({"field": "title", "id": str(title_conflict["_id"])})
-
-    url_conflict = await collection.find_one({"url": problem_dict["url"]})
-    if url_conflict:
-        conflicts.append({"field": "url", "id": str(url_conflict["_id"])})
-
+    
+    # Check title conflict for this user
+    for pid, p in problems_db.items():
+        if p.get("user_id") == str(current_user.id) and p.get("title") == problem_dict["title"]:
+            conflicts.append({"field": "title", "id": pid})
+        if p.get("user_id") == str(current_user.id) and p.get("url") == problem_dict["url"]:
+            conflicts.append({"field": "url", "id": pid})
+    
     if conflicts:
         return JSONResponse(
             status_code=409,
@@ -39,163 +52,168 @@ async def add_problem(problem: ProblemCreate):
                 "conflicts": conflicts
             }
         )
-
-    result = await collection.insert_one(problem_dict)
-    return ProblemInDB(id=str(result.inserted_id), **problem_dict)
+    
+    # Generate ID and store problem
+    problem_id = get_next_problem_id()
+    problem_dict["id"] = problem_id
+    
+    problems_db[problem_id] = problem_dict
+    
+    # Update user's problem list
+    user_id = str(current_user.id)
+    if user_id not in user_problems:
+        user_problems[user_id] = []
+    user_problems[user_id].append(problem_id)
+    
+    return ProblemInDB(**problem_dict)
 
 # GET Problems of a user
-
 @router.get("/", response_model=List[ProblemInDB])
 async def get_problems(
-    user_id: str,
-    difficulty: Optional[str] = None,
-    tags: Optional[List[str]] = Query(None),
-    retry_later: Optional[str] = None,
-    search: Optional[str] = None,
-    sort_by: Optional[str] = "date_solved",
-    order: Optional[str] = "desc",
+    difficulty: Optional[str] = Query(None),
+    tags: Optional[str] = Query(None),
+    sortBy: Optional[str] = Query(None),
+    sortOrder: Optional[str] = Query("desc"),
+    current_user: UserInDB = Depends(get_current_active_user)
 ):
-    query = {"user_id": user_id}
-
+    """Get all problems for the authenticated user with filtering and sorting"""
+    user_id = str(current_user.id)
+    
+    # Get user's problems
+    user_problem_ids = user_problems.get(user_id, [])
+    user_problem_list = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
+    
+    # Apply filters
+    filtered_problems = user_problem_list
+    
     if difficulty:
-        query["difficulty"] = difficulty
-    if retry_later is not None:
-        query["retry_later"] = retry_later
+        filtered_problems = [p for p in filtered_problems if p.get("difficulty") == difficulty]
+    
     if tags:
-        query["tags"] = {"$all": tags}
-    if search:
-        query["$or"] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"notes": {"$regex": search, "$options": "i"}},
+        tag_list = [tag.strip() for tag in tags.split(",")]
+        filtered_problems = [
+            p for p in filtered_problems 
+            if any(tag in p.get("tags", []) for tag in tag_list)
         ]
+    
+    # Apply sorting
+    if sortBy:
+        reverse = sortOrder == "desc"
+        if sortBy == "date":
+            filtered_problems.sort(key=lambda x: x.get("created_at", datetime.min), reverse=reverse)
+        elif sortBy == "difficulty":
+            difficulty_order = {"easy": 1, "medium": 2, "hard": 3}
+            filtered_problems.sort(
+                key=lambda x: difficulty_order.get(x.get("difficulty"), 0), 
+                reverse=reverse
+            )
+        elif sortBy == "title":
+            filtered_problems.sort(key=lambda x: x.get("title", ""), reverse=reverse)
+    
+    return [ProblemInDB(**problem) for problem in filtered_problems]
 
-    sort_order = -1 if order == "desc" else 1
-    cursor = collection.find(query).sort(sort_by, sort_order)
-
-    problems = []
-    async for doc in cursor:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-        problems.append(ProblemInDB(**doc))
-
-    return problems
-
-# GET stats
-@router.get("/stats")
-async def get_stats(user_id: str):
-    try:
-        # 1. Get all problems for the user
-        cursor = collection.find({"user_id": user_id})
-        problems = []
-        async for doc in cursor:
-            problems.append(doc)
-
-        if not problems:
-            return {
-                "total_solved": 0,
-                "by_difficulty": {},
-                "most_common_tags": [],
-                "total_time_minutes": 0,
-                "retry_later_count": 0
-            }
-
-        # 2. Count by difficulty
-        difficulty_count = Counter(p["difficulty"] for p in problems)
-
-        # 3. Most common tags
-        tags = []
-        for p in problems:
-            tags.extend(p.get("tags", []))
-        tag_count = Counter(tags).most_common(5)  # top 5
-        most_common_tags = [tag for tag, _ in tag_count]
-
-        # 4. Total time spent
-        total_time = sum(p.get("time_taken_min", 0) for p in problems)
-
-        # 5. Retry later count
-        retry_count = sum(1 for p in problems if p.get("retry_later") is True)
-
-        return {
-            "total_solved": len(problems),
-            "by_difficulty": difficulty_count,
-            "most_common_tags": most_common_tags,
-            "total_time_minutes": total_time,
-            "retry_later_count": retry_count
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# GET a problem
-
-@router.get("/{id}", response_model=ProblemInDB)
-async def get_problem(id: str):
-    doc = await collection.find_one({"_id": ObjectId(id)})
-    if not doc:
+# GET a specific problem
+@router.get("/{problem_id}", response_model=ProblemInDB)
+async def get_problem(
+    problem_id: str, 
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    """Get a specific problem by ID"""
+    if problem_id not in problems_db:
         raise HTTPException(status_code=404, detail="Problem not found")
-    doc["id"] = str(doc["_id"])
-    del doc["_id"]
-    return ProblemInDB(**doc)
+    
+    problem = problems_db[problem_id]
+    
+    # Check if user owns this problem
+    if problem.get("user_id") != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to access this problem")
+    
+    return ProblemInDB(**problem)
 
 # PUT update a problem
-
-@router.put("/{id}", response_model=ProblemInDB)
-async def update_problem(id: str, update: ProblemUpdate):
-    update_data = {k: v for k, v in update.dict().items() if v is not None}
-
-    if "url" in update_data:
-        update_data["url"] = str(update_data["url"])
-
-    if "date_solved" in update_data:
-        update_data["date_solved"] = update_data["date_solved"].isoformat()
-
-    conflicts = []
-
-    if "title" in update_data:
-        existing_title = await collection.find_one({
-            "title": update_data["title"],
-            "_id": {"$ne": ObjectId(id)}
-        })
-        if existing_title:
-            conflicts.append({"field": "title", "id": str(existing_title["_id"])})
-
-    if "url" in update_data:
-        existing_url = await collection.find_one({
-            "url": update_data["url"],
-            "_id": {"$ne": ObjectId(id)}
-        })
-        if existing_url:
-            conflicts.append({"field": "url", "id": str(existing_url["_id"])})
-
-    if conflicts:
-        return JSONResponse(
-            status_code=409,
-            content={
-                "detail": "Conflict on title or URL",
-                "conflicts": conflicts
-            }
-        )
-
-    result = await collection.find_one_and_update(
-        {"_id": ObjectId(id)},
-        {"$set": update_data},
-        return_document=True
-    )
-
-    if not result:
+@router.put("/{problem_id}", response_model=ProblemInDB)
+async def update_problem(
+    problem_id: str, 
+    problem_update: ProblemUpdate,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    """Update a specific problem"""
+    if problem_id not in problems_db:
         raise HTTPException(status_code=404, detail="Problem not found")
+    
+    problem = problems_db[problem_id]
+    
+    # Check if user owns this problem
+    if problem.get("user_id") != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to update this problem")
+    
+    # Update the problem
+    update_data = problem_update.dict(exclude_unset=True)
+    update_data["updated_at"] = datetime.utcnow()
+    
+    problems_db[problem_id].update(update_data)
+    
+    return ProblemInDB(**problems_db[problem_id])
 
-    result["id"] = str(result["_id"])
-    del result["_id"]
-    return ProblemInDB(**result)
-
-# Delete a problem
-@router.delete("/{id}")
-async def delete_problem(id: str):
-    result = await collection.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0:
+# DELETE a problem
+@router.delete("/{problem_id}")
+async def delete_problem(
+    problem_id: str, 
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    """Delete a specific problem"""
+    if problem_id not in problems_db:
         raise HTTPException(status_code=404, detail="Problem not found")
+    
+    problem = problems_db[problem_id]
+    
+    # Check if user owns this problem
+    if problem.get("user_id") != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this problem")
+    
+    # Remove from storage
+    del problems_db[problem_id]
+    
+    # Remove from user's problem list
+    user_id = str(current_user.id)
+    if user_id in user_problems and problem_id in user_problems[user_id]:
+        user_problems[user_id].remove(problem_id)
+    
     return {"detail": "Problem deleted successfully"}
+
+# GET problem statistics for user
+@router.get("/stats/overview")
+async def get_problem_stats(current_user: UserInDB = Depends(get_current_active_user)):
+    """Get problem statistics for the authenticated user"""
+    user_id = str(current_user.id)
+    user_problem_ids = user_problems.get(user_id, [])
+    user_problem_list = [problems_db[pid] for pid in user_problem_ids if pid in problems_db]
+    
+    if not user_problem_list:
+        return {
+            "total_problems": 0,
+            "difficulty_breakdown": {"easy": 0, "medium": 0, "hard": 0},
+            "tag_distribution": {},
+            "recent_activity": []
+        }
+    
+    # Calculate statistics
+    difficulty_counts = Counter(p.get("difficulty", "unknown") for p in user_problem_list)
+    tag_counts = Counter()
+    for problem in user_problem_list:
+        for tag in problem.get("tags", []):
+            tag_counts[tag] += 1
+    
+    return {
+        "total_problems": len(user_problem_list),
+        "difficulty_breakdown": dict(difficulty_counts),
+        "tag_distribution": dict(tag_counts.most_common(10)),
+        "recent_activity": sorted(
+            user_problem_list, 
+            key=lambda x: x.get("created_at", datetime.min), 
+            reverse=True
+        )[:5]
+    }
 
 
 
