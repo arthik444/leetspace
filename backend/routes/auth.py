@@ -10,8 +10,8 @@ from auth.verify_token import (
     get_user_by_email,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-# Use temporary storage instead of MongoDB for testing
-from db.temp_storage import create_user
+# Use MongoDB for user operations
+from db.user_operations import create_user
 
 router = APIRouter()
 

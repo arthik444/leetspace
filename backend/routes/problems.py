@@ -3,23 +3,30 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from typing import List, Optional
-from db.mongo import db
+from db.mongo import problems_collection
 from schemas.problem import ProblemCreate, ProblemInDB, ProblemUpdate
 from bson import ObjectId
 from datetime import datetime
 from collections import Counter
 from fastapi.responses import JSONResponse
+from auth.verify_token import get_current_active_user
+from models.user import UserInDB
 
 
 router = APIRouter()
 
-collection = db["problems"]
+collection = problems_collection
 
 # POST a problem for a user
 
 @router.post("/", response_model=ProblemInDB)
-async def add_problem(problem: ProblemCreate):
+async def add_problem(
+    problem: ProblemCreate,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
     problem_dict = jsonable_encoder(problem)
+    # Set the user_id from the authenticated user
+    problem_dict["user_id"] = str(current_user.id)
 
     conflicts = []
 
@@ -47,15 +54,16 @@ async def add_problem(problem: ProblemCreate):
 
 @router.get("/", response_model=List[ProblemInDB])
 async def get_problems(
-    user_id: str,
     difficulty: Optional[str] = None,
     tags: Optional[List[str]] = Query(None),
     retry_later: Optional[str] = None,
     search: Optional[str] = None,
     sort_by: Optional[str] = "date_solved",
     order: Optional[str] = "desc",
+    current_user: UserInDB = Depends(get_current_active_user)
 ):
-    query = {"user_id": user_id}
+    # Get problems for the authenticated user
+    query = {"user_id": str(current_user.id)}
 
     if difficulty:
         query["difficulty"] = difficulty
@@ -82,10 +90,10 @@ async def get_problems(
 
 # GET stats
 @router.get("/stats")
-async def get_stats(user_id: str):
+async def get_stats(current_user: UserInDB = Depends(get_current_active_user)):
     try:
-        # 1. Get all problems for the user
-        cursor = collection.find({"user_id": user_id})
+        # 1. Get all problems for the authenticated user
+        cursor = collection.find({"user_id": str(current_user.id)})
         problems = []
         async for doc in cursor:
             problems.append(doc)
@@ -129,8 +137,15 @@ async def get_stats(user_id: str):
 # GET a problem
 
 @router.get("/{id}", response_model=ProblemInDB)
-async def get_problem(id: str):
-    doc = await collection.find_one({"_id": ObjectId(id)})
+async def get_problem(
+    id: str, 
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    # Ensure user can only access their own problems
+    doc = await collection.find_one({
+        "_id": ObjectId(id), 
+        "user_id": str(current_user.id)
+    })
     if not doc:
         raise HTTPException(status_code=404, detail="Problem not found")
     doc["id"] = str(doc["_id"])
@@ -140,7 +155,11 @@ async def get_problem(id: str):
 # PUT update a problem
 
 @router.put("/{id}", response_model=ProblemInDB)
-async def update_problem(id: str, update: ProblemUpdate):
+async def update_problem(
+    id: str, 
+    update: ProblemUpdate,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
     update_data = {k: v for k, v in update.dict().items() if v is not None}
 
     if "url" in update_data:
@@ -176,8 +195,9 @@ async def update_problem(id: str, update: ProblemUpdate):
             }
         )
 
+    # Ensure user can only update their own problems
     result = await collection.find_one_and_update(
-        {"_id": ObjectId(id)},
+        {"_id": ObjectId(id), "user_id": str(current_user.id)},
         {"$set": update_data},
         return_document=True
     )
@@ -191,8 +211,15 @@ async def update_problem(id: str, update: ProblemUpdate):
 
 # Delete a problem
 @router.delete("/{id}")
-async def delete_problem(id: str):
-    result = await collection.delete_one({"_id": ObjectId(id)})
+async def delete_problem(
+    id: str,
+    current_user: UserInDB = Depends(get_current_active_user)
+):
+    # Ensure user can only delete their own problems
+    result = await collection.delete_one({
+        "_id": ObjectId(id), 
+        "user_id": str(current_user.id)
+    })
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Problem not found")
     return {"detail": "Problem deleted successfully"}

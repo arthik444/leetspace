@@ -13,19 +13,7 @@ dnspython==2.7.0
 ecdsa==0.19.1
 email_validator==2.2.0
 fastapi==0.115.14
-firebase-admin==6.5.0
-google-api-core==2.25.1
-google-api-python-client==2.177.0
-google-auth==2.40.3
-google-auth-httplib2==0.2.0
-google-cloud-core==2.4.3
-google-cloud-firestore==2.21.0
-google-cloud-storage==3.2.0
-google-crc32c==1.7.1
-google-resumable-media==2.7.2
-googleapis-common-protos==1.70.0
-grpcio==1.74.0
-grpcio-status==1.74.0
+# Removed Firebase dependencies - now using MongoDB authentication
 h11==0.16.0
 httplib2==0.22.0
 idna==3.10
