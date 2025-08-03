@@ -22,7 +22,7 @@ class ProblemBase(BaseModel):
 
 
 class ProblemCreate(ProblemBase):
-    user_id: str = Field(..., example="abc123")
+    pass  # user_id will be set automatically from authenticated user
 
 
 class ProblemUpdate(BaseModel):
