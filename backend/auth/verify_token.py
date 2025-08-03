@@ -5,7 +5,8 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models.user import TokenData, UserInDB
-from db.mongo import db
+# Use temporary storage instead of MongoDB for testing
+from db.temp_storage import find_user_by_email
 import os
 
 # Configuration
@@ -40,11 +41,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 async def get_user_by_email(email: str) -> Optional[UserInDB]:
-    """Get user from database by email."""
-    user_data = await db.users.find_one({"email": email})
-    if user_data:
-        return UserInDB(**user_data)
-    return None
+    """Get user from temporary storage by email."""
+    return await find_user_by_email(email)
 
 async def authenticate_user(email: str, password: str) -> Optional[UserInDB]:
     """Authenticate a user with email and password."""

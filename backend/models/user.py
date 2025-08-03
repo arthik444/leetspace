@@ -1,23 +1,27 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic_core import core_schema
 from typing import Optional, Any
 from datetime import datetime
 from bson import ObjectId
 
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler
+    ) -> core_schema.CoreSchema:
+        return core_schema.no_info_wrap_validator_function(
+            cls._validate,
+            core_schema.str_schema(),
+            serialization=core_schema.to_string_ser_schema(),
+        )
 
     @classmethod
-    def validate(cls, v, _info=None):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema: dict[str, Any]) -> dict[str, Any]:
-        field_schema.update(type="string")
-        return field_schema
+    def _validate(cls, value: Any) -> ObjectId:
+        if isinstance(value, ObjectId):
+            return value
+        if isinstance(value, str) and ObjectId.is_valid(value):
+            return ObjectId(value)
+        raise ValueError("Invalid ObjectId")
 
 class UserBase(BaseModel):
     email: EmailStr

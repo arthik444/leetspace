@@ -10,7 +10,8 @@ from auth.verify_token import (
     get_user_by_email,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from db.mongo import db
+# Use temporary storage instead of MongoDB for testing
+from db.temp_storage import create_user
 
 router = APIRouter()
 
@@ -36,10 +37,8 @@ async def register_user(user: UserCreate):
         "updated_at": datetime.utcnow()
     }
     
-    result = await db.users.insert_one(user_data)
-    user_data["_id"] = result.inserted_id
-    
-    return User(**user_data)
+    created_user = await create_user(user_data)
+    return User(**created_user.dict())
 
 @router.post("/login", response_model=Token)
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -93,3 +92,8 @@ async def get_current_user_profile(current_user: UserInDB = Depends(get_current_
 async def verify_token(current_user: UserInDB = Depends(get_current_active_user)):
     """Verify if token is valid."""
     return {"valid": True, "user": User(**current_user.dict())}
+
+@router.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify server is working."""
+    return {"message": "✅ Authentication system is working!", "timestamp": datetime.utcnow()}
