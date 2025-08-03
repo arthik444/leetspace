@@ -52,7 +52,8 @@ class UserDatabase:
             user_data.setdefault("is_active", True)
             
             result = await self.collection.insert_one(user_data)
-            user_data["_id"] = result.inserted_id
+            # Convert ObjectId to string for Pydantic
+            user_data["_id"] = str(result.inserted_id)
             return UserInDB(**user_data)
         except Exception as e:
             print(f"MongoDB error in create_user: {e}")
