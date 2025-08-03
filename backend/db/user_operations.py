@@ -56,7 +56,17 @@ class UserDatabase:
             return UserInDB(**user_data)
         except Exception as e:
             print(f"MongoDB error in create_user: {e}")
-            raise HTTPException(status_code=503, detail="Database service unavailable")
+            # Check if it's a duplicate key error (email already exists)
+            if "E11000" in str(e) or "duplicate key" in str(e).lower():
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Email already registered"
+                )
+            else:
+                raise HTTPException(
+                    status_code=503, 
+                    detail="Database service unavailable"
+                )
     
     async def update_user(self, user_id: str, update_data: dict) -> Optional[UserInDB]:
         """Update user in MongoDB."""

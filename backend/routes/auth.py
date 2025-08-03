@@ -18,27 +18,42 @@ router = APIRouter()
 @router.post("/register", response_model=User)
 async def register_user(user: UserCreate):
     """Register a new user."""
+    print(f"📝 Registration attempt for email: {user.email}")
+    
     # Check if user already exists
     existing_user = await get_user_by_email(user.email)
     if existing_user:
+        print(f"⚠️ Registration failed - email already exists: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
     
-    # Create new user
-    hashed_password = get_password_hash(user.password)
-    user_data = {
-        "email": user.email,
-        "full_name": user.full_name,
-        "hashed_password": hashed_password,
-        "is_active": True,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-    
-    created_user = await create_user(user_data)
-    return User(**created_user.dict())
+    try:
+        # Create new user
+        hashed_password = get_password_hash(user.password)
+        user_data = {
+            "email": user.email,
+            "full_name": user.full_name,
+            "hashed_password": hashed_password,
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        created_user = await create_user(user_data)
+        print(f"✅ User registered successfully: {user.email}")
+        return User(**created_user.dict())
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like duplicate email)
+        raise
+    except Exception as e:
+        print(f"❌ Unexpected error during registration: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed due to server error"
+        )
 
 @router.post("/login", response_model=Token)
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
