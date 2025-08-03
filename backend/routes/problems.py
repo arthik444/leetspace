@@ -66,7 +66,7 @@ async def get_problems(
     order: Optional[str] = "desc",
     current_user: UserInDB = Depends(get_current_active_user)
 ):
-    query = {"user_id": user_id}
+    query = {"user_id": str(current_user.id)}
 
     if difficulty:
         query["difficulty"] = difficulty
