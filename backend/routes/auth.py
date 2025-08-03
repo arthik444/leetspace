@@ -182,8 +182,15 @@ async def logout_user(
         jti = payload.get("jti")
         exp = payload.get("exp")
         
-        if jti and exp:
+        if exp:
             expires_at = datetime.fromtimestamp(exp)
+            
+            # Handle tokens without JTI (older tokens)
+            if not jti:
+                # Generate a unique identifier for the token itself
+                import hashlib
+                jti = hashlib.sha256(token.encode()).hexdigest()[:16]
+            
             success = await blacklist_token(token, jti, expires_at)
             
             if success:

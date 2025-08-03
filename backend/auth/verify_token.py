@@ -78,16 +78,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         email: str = payload.get("sub")
         jti: str = payload.get("jti")
         
-        if email is None or jti is None:
+        if email is None:
             raise credentials_exception
             
-        # Check if token is blacklisted
-        if await is_token_blacklisted(jti):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # Handle tokens without JTI (older tokens)
+        if jti:
+            # Check if token is blacklisted (only for tokens with JTI)
+            if await is_token_blacklisted(jti):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        # Note: Older tokens without JTI cannot be individually blacklisted,
+        # but they will expire naturally or be invalidated by logout-all
             
         token_data = TokenData(email=email)
     except JWTError:

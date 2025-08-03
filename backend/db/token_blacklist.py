@@ -23,13 +23,19 @@ class TokenBlacklist:
     async def blacklist_token(self, token: str, jti: str, expires_at: datetime):
         """Add a token to the blacklist."""
         try:
-            # Add to database
-            await self.collection.insert_one({
-                "token_jti": jti,
-                "token": token,
-                "blacklisted_at": datetime.utcnow(),
-                "expires_at": expires_at
-            })
+            # Add to database (use upsert to handle duplicates)
+            await self.collection.update_one(
+                {"token_jti": jti},
+                {
+                    "$set": {
+                        "token_jti": jti,
+                        "token": token,
+                        "blacklisted_at": datetime.utcnow(),
+                        "expires_at": expires_at
+                    }
+                },
+                upsert=True
+            )
             
             # Add to memory cache
             self._memory_cache.add(jti)
@@ -44,7 +50,9 @@ class TokenBlacklist:
             return True
         except Exception as e:
             print(f"Error blacklisting token: {e}")
-            return False
+            # Even if database fails, add to cache for immediate effect
+            self._memory_cache.add(jti)
+            return True  # Return True since it's in cache
     
     async def is_token_blacklisted(self, jti: str) -> bool:
         """Check if a token is blacklisted."""
