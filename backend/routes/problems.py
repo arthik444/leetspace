@@ -24,6 +24,9 @@ async def add_problem(
     problem: ProblemCreate,
     current_user: UserInDB = Depends(get_current_active_user)
 ):
+    if not current_user or not current_user.id:
+        raise HTTPException(status_code=401, detail="Invalid user authentication")
+    
     problem_dict = jsonable_encoder(problem)
     # Set the user_id from the authenticated user
     problem_dict["user_id"] = str(current_user.id)
@@ -63,6 +66,9 @@ async def get_problems(
     current_user: UserInDB = Depends(get_current_active_user)
 ):
     # Get problems for the authenticated user
+    if not current_user or not current_user.id:
+        raise HTTPException(status_code=401, detail="Invalid user authentication")
+    
     query = {"user_id": str(current_user.id)}
 
     if difficulty:
@@ -91,6 +97,9 @@ async def get_problems(
 # GET stats
 @router.get("/stats")
 async def get_stats(current_user: UserInDB = Depends(get_current_active_user)):
+    if not current_user or not current_user.id:
+        raise HTTPException(status_code=401, detail="Invalid user authentication")
+    
     try:
         # 1. Get all problems for the authenticated user
         cursor = collection.find({"user_id": str(current_user.id)})
