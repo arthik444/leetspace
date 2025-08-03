@@ -26,6 +26,8 @@ class UserDatabase:
         try:
             user_doc = await self.collection.find_one({"email": email})
             if user_doc:
+                # Convert ObjectId to string for Pydantic
+                user_doc["_id"] = str(user_doc["_id"])
                 return UserInDB(**user_doc)
             return None
         except Exception as e:
@@ -39,6 +41,8 @@ class UserDatabase:
         
         user_doc = await self.collection.find_one({"_id": ObjectId(user_id)})
         if user_doc:
+            # Convert ObjectId to string for Pydantic
+            user_doc["_id"] = str(user_doc["_id"])
             return UserInDB(**user_doc)
         return None
     
@@ -83,6 +87,8 @@ class UserDatabase:
         )
         
         if result:
+            # Convert ObjectId to string for Pydantic
+            result["_id"] = str(result["_id"])
             return UserInDB(**result)
         return None
     
@@ -99,6 +105,8 @@ class UserDatabase:
         cursor = self.collection.find().skip(skip).limit(limit)
         users = []
         async for doc in cursor:
+            # Convert ObjectId to string for Pydantic
+            doc["_id"] = str(doc["_id"])
             users.append(UserInDB(**doc))
         return users
     
@@ -111,6 +119,8 @@ class UserDatabase:
         cursor = self.collection.find({"is_active": True}).skip(skip).limit(limit)
         users = []
         async for doc in cursor:
+            # Convert ObjectId to string for Pydantic
+            doc["_id"] = str(doc["_id"])
             users.append(UserInDB(**doc))
         return users
 
