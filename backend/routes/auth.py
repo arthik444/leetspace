@@ -10,35 +10,49 @@ from auth.verify_token import (
     get_user_by_email,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-# Use temporary storage instead of MongoDB for testing
-from db.temp_storage import create_user
+# Use MongoDB for user operations
+from db.user_operations import create_user
 
 router = APIRouter()
 
 @router.post("/register", response_model=User)
 async def register_user(user: UserCreate):
     """Register a new user."""
+    print(f"📝 Registration attempt for email: {user.email}")
     # Check if user already exists
     existing_user = await get_user_by_email(user.email)
     if existing_user:
+        print(f"⚠️ Registration failed - email already exists: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
+    try:
+        # Create new user
+        hashed_password = get_password_hash(user.password)
+        user_data = {
+            "email": user.email,
+            "full_name": user.full_name,
+            "hashed_password": hashed_password,
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        created_user = await create_user(user_data)
+        print(f"✅ User registered successfully: {user.email}")
+        return User(**created_user.model_dump())
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like duplicate email)
+        raise
+    except Exception as e:
+        print(f"❌ Unexpected error during registration: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed due to server error"
+        )
     
-    # Create new user
-    hashed_password = get_password_hash(user.password)
-    user_data = {
-        "email": user.email,
-        "full_name": user.full_name,
-        "hashed_password": hashed_password,
-        "is_active": True,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-    
-    created_user = await create_user(user_data)
-    return User(**created_user.dict())
 
 @router.post("/login", response_model=Token)
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -86,12 +100,12 @@ async def login_user_json(user_credentials: dict):
 @router.get("/me", response_model=User)
 async def get_current_user_profile(current_user: UserInDB = Depends(get_current_active_user)):
     """Get current user profile."""
-    return User(**current_user.dict())
+    return User(**current_user.model_dump())
 
 @router.get("/verify")
 async def verify_token(current_user: UserInDB = Depends(get_current_active_user)):
     """Verify if token is valid."""
-    return {"valid": True, "user": User(**current_user.dict())}
+    return {"valid": True, "user": User(**current_user.model_dump())}
 
 @router.get("/test")
 async def test_endpoint():

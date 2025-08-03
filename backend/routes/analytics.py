@@ -1,22 +1,29 @@
 # routes/analytics.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any
-from db.mongo import db
+# from db.mongo import db
+from db.mongo import problems_collection
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
+from auth.verify_token import get_current_active_user
+from models.user import UserInDB
+
 
 router = APIRouter()
-collection = db["problems"]
+# collection = db["problems"]
+collection = problems_collection
 
 @router.get("/dashboard")
-async def get_dashboard_stats(user_id: str):
+async def get_dashboard_stats(current_user: UserInDB = Depends(get_current_active_user)):
     """
     Get comprehensive dashboard statistics for a user
     """
     try:
-        # Get all problems for the user
-        cursor = collection.find({"user_id": user_id})
+        # # Get all problems for the user
+        # cursor = collection.find({"user_id": user_id})
+                # Get all problems for the authenticated user
+        cursor = collection.find({"user_id": str(current_user.id)})
         problems = []
         async for doc in cursor:
             doc["id"] = str(doc["_id"])

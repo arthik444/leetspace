@@ -6,7 +6,7 @@ import DateSolvedInput from "@/components/dateSelector.jsx";
 import { useState, useEffect } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import CodeEditor from "@/components/CodeEditor";
-import axios from "axios";
+import apiService from "@/lib/api";
 import { useAuth } from "@/lib/useAuth";
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertCircle,Pencil,ExternalLink } from "lucide-react";
@@ -100,10 +100,7 @@ export default function EditProblem() {
       // Fallback: fetch from API
       async function fetchProblem() {
         try {
-          const res = await axios.get(`/api/problems/${id}`, {
-            baseURL: "http://localhost:8000",
-          });
-          const p = res.data;
+          const p = await apiService.getProblem(id);
           setTitle(p.title);
           setUrl(p.url);
           setDifficulty(p.difficulty);
@@ -187,7 +184,7 @@ export default function EditProblem() {
       (sol) => sol.code.trim() !== ""
     );
     const problemData = {
-      user_id: user.uid,
+      // user_id: user.uid,
       title,
       url,
       difficulty,
@@ -199,19 +196,16 @@ export default function EditProblem() {
     };
 
     try {
-      const res = await axios.put(`/api/problems/${id}`, problemData, {
-        baseURL: "http://localhost:8000",
-      });
-      console.log("✅ Problem updated:", res.data);
+      const result = await apiService.updateProblem(id, problemData);
+      console.log("✅ Problem updated:", result);
       sessionStorage.removeItem(`editProblemDraft-${id}`); // Clear draft on success
       navigate(`/problems/${id}`);
     } catch (err) {
-      if (err.response?.status === 409) {
-        const data = err.response.data;
-        setFormError(data.detail || "A problem already exists.");
-        setConflicts(data.conflicts || []);
+      if (err.message.includes('409') || err.message.includes('Conflict')) {
+        setFormError("A problem with this title or URL already exists.");
+        setConflicts([]);
       } else {
-        setFormError("Something went wrong while saving the problem.");
+        setFormError(err.message || "Something went wrong while saving the problem.");
         setConflicts([]);
       }
     }

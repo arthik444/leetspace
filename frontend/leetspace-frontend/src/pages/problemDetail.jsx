@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiService from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit3, Trash2,ExternalLink } from "lucide-react";
@@ -52,10 +52,8 @@ export default function ProblemDetail() {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const res = await axios.get(`/api/problems/${id}`, {
-          baseURL: "http://localhost:8000",
-        });
-        setProblem(res.data);
+        const problem = await apiService.getProblem(id);
+        setProblem(problem);
       } catch (err) {
         console.error("Failed to fetch problem", err);
       } finally {
@@ -73,10 +71,8 @@ export default function ProblemDetail() {
 
   const confirmDelete = async (problemId) => {
     try {
-      await axios.delete(`/api/problems/${problemId}`, {
-        baseURL: "http://localhost:8000",
-      });
-      toast.success("Problem deleted succesfully", {
+      await apiService.deleteProblem(problemId);
+      toast.success("Problem deleted successfully", {
         style: {
           backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
           color: theme === 'dark' ? '#ffffff' : '#000000',

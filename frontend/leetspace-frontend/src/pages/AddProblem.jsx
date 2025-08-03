@@ -6,7 +6,7 @@ import DateSolvedInput from "@/components/dateSelector.jsx";
 import { useState,useEffect } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import CodeEditor from "@/components/CodeEditor";
-import axios from "axios";
+import apiService from "@/lib/api";
 import { useAuth } from "@/lib/useAuth";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle,Plus,ExternalLink } from "lucide-react";
@@ -164,7 +164,7 @@ export default function AddProblem() {
       (sol) => sol.code.trim() !== ""
     );
     const problemData = {
-      user_id: user.uid, // ✅ required by backend
+      // user_id: user.uid, // ✅ required by backend
       title,
       url,
       difficulty,
@@ -176,19 +176,16 @@ export default function AddProblem() {
     };
 
     try {
-      const res = await axios.post("/api/problems/", problemData, {
-        baseURL: "http://localhost:8000",
-      });
-      console.log("✅ Problem saved:", res.data);
+      const result = await apiService.createProblem(problemData);
+      console.log("✅ Problem saved:", result);
       sessionStorage.removeItem("addProblemDraft");
-      navigate(`/problems/${res.data.id}`);
+      navigate(`/problems/${result.id}`);
     } catch (err) {
-      if (err.response?.status === 409) {
-        const data = err.response.data;
-        setFormError(data.detail || "A problem already exists.");
-        setConflicts(data.conflicts || []);
+      if (err.message.includes('409') || err.message.includes('Conflict')) {
+        setFormError("A problem with this title or URL already exists.");
+        setConflicts([]);
       } else {
-        setFormError("Something went wrong while saving the problem.");
+        setFormError(err.message || "Something went wrong while saving the problem.");
         setConflicts([]);
       }
     }

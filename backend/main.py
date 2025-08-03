@@ -3,9 +3,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db.mongo import db
-from routes import problems, analytics,auth  # Optional for now if not created
+# from routes import problems, analytics,auth  # Optional for now if not created
 
-app = FastAPI()
+# app = FastAPI()
+from db.user_operations import ensure_user_indexes
+from routes import problems, analytics, auth
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    try:
+        await ensure_user_indexes()
+        print("✅ MongoDB user indexes created")
+    except Exception as e:
+        print(f"⚠️ MongoDB connection failed: {e}")
+        print("🔄 Server will start without MongoDB connection (development mode)")
+    yield
+    # Shutdown
+    print("🔧 Application shutdown")
+
+app = FastAPI(lifespan=lifespan)
 
 # Optional CORS setup for frontend
 app.add_middleware(

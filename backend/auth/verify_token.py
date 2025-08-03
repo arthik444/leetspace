@@ -5,8 +5,10 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models.user import TokenData, UserInDB
-# Use temporary storage instead of MongoDB for testing
-from db.temp_storage import find_user_by_email
+# # Use temporary storage instead of MongoDB for testing
+# from db.temp_storage import find_user_by_email
+# Use MongoDB for user operations
+from db.user_operations import find_user_by_email
 import os
 
 # Configuration

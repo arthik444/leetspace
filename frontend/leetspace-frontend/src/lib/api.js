@@ -106,19 +106,20 @@ class ApiService {
   }
 
   // Analytics endpoints
-  async getDashboardData(userId) {
+  async getDashboardData() {
     return this.request('/analytics/dashboard', {
-      method: 'GET',
-      params: { user_id: userId }
+      method: 'GET'
     });
   }
 
   // Problems endpoints  
   async getProblems(params = {}) {
+    // Remove user_id from params since backend gets it from auth token
+    const { user_id, ...filteredParams } = params;
     return this.request('/problems', {
       method: 'GET',
-      params
-    });
+      params: filteredParams
+      });
   }
 
   async getProblem(id) {
@@ -142,6 +143,12 @@ class ApiService {
   async deleteProblem(id) {
     return this.request(`/problems/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  async getProblemStats() {
+    return this.request('/problems/stats', {
+      method: 'GET'
     });
   }
 

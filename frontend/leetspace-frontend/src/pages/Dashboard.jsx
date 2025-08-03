@@ -27,7 +27,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       // if (!user?.uid) return;
-      if (!isAuthenticated || !user?.id) {
+      if (!isAuthenticated || !user) {
         setLoading(false);
         return;
       }
@@ -39,8 +39,8 @@ export default function Dashboard() {
         //   params: { user_id: user.uid }
         // });
         // setData(response.data);
-        // Use simplified API method
-        const response = await apiService.getDashboardData(user.id);
+        // Use simplified API method - no user_id needed (backend gets from auth token)
+        const response = await apiService.getDashboardData();
         setData(response);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
