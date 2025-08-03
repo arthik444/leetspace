@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiService from "@/lib/api";
 import { useAuth } from "@/lib/useAuth";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/data-table/columns";
@@ -23,16 +23,12 @@ export default function Problems() {
   // const user = "abc123";
   const fetchProblems = async () => {
     try {
-      const res = await axios.get(`/api/problems`, {
-        baseURL: "http://localhost:8000",
-        params: {
-          user_id: user.uid,
-          sort_by: "date_solved",
-          order: "desc",
-        },
+      const problems = await apiService.getProblems({
+        sort_by: "date_solved",
+        order: "desc",
       });
-      setProblems(res.data);
-      console.log(res.data);
+      setProblems(problems);
+      console.log(problems);
     } catch (error) {
       console.error("Error fetching problems:", error);
     } finally {
@@ -41,7 +37,7 @@ export default function Problems() {
   };
 
   useEffect(() => {
-    if (user?.uid) {
+    if (user) {
       fetchProblems();
     }
   }, [user]);
@@ -57,13 +53,11 @@ export default function Problems() {
 
   const confirmDelete = async (problemId) => {
     try {
-      await axios.delete(`/api/problems/${problemId}`, {
-        baseURL: "http://localhost:8000",
-      });
+      await apiService.deleteProblem(problemId);
       
       // Remove the problem from the local state
       setProblems(problems.filter(p => p.id !== problemId));
-      toast.success("Problem deleted succesfully", {
+      toast.success("Problem deleted successfully", {
         style: {
           backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
           color: theme === 'dark' ? '#ffffff' : '#000000',
@@ -84,16 +78,7 @@ export default function Problems() {
 
   const updateProblem = async (problemId, updateData) => {
     try {
-      await axios.put(
-        `/api/problems/${problemId}`,
-        updateData,
-        {
-          baseURL: "http://localhost:8000",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await apiService.updateProblem(problemId, updateData);
       
       // Refresh the problems list
       await fetchProblems();

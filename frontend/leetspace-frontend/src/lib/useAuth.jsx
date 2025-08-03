@@ -1,6 +1,4 @@
 import { useState, useEffect, useContext, createContext } from "react";
-// import { auth } from "./firebase"; // your Firebase config
-// import { onAuthStateChanged } from "firebase/auth";
 import apiService from "./api"; // Our backend API service
 
 // 1. Create context
@@ -12,10 +10,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    //   setUser(firebaseUser);
-    //   setLoading(false);
-    // }
     const checkAuth = async () => {
       try {
         if (apiService.isAuthenticated()) {
