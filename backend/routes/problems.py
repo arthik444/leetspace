@@ -160,7 +160,7 @@ async def update_problem(
     update: ProblemUpdate,
     current_user: UserInDB = Depends(get_current_active_user)
 ):
-    update_data = {k: v for k, v in update.dict().items() if v is not None}
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
 
     if "url" in update_data:
         update_data["url"] = str(update_data["url"])

@@ -43,7 +43,7 @@ async def register_user(user: UserCreate):
         
         created_user = await create_user(user_data)
         print(f"✅ User registered successfully: {user.email}")
-        return User(**created_user.dict())
+        return User(**created_user.model_dump())
         
     except HTTPException:
         # Re-raise HTTP exceptions (like duplicate email)
@@ -101,12 +101,12 @@ async def login_user_json(user_credentials: dict):
 @router.get("/me", response_model=User)
 async def get_current_user_profile(current_user: UserInDB = Depends(get_current_active_user)):
     """Get current user profile."""
-    return User(**current_user.dict())
+    return User(**current_user.model_dump())
 
 @router.get("/verify")
 async def verify_token(current_user: UserInDB = Depends(get_current_active_user)):
     """Verify if token is valid."""
-    return {"valid": True, "user": User(**current_user.dict())}
+    return {"valid": True, "user": User(**current_user.model_dump())}
 
 @router.get("/test")
 async def test_endpoint():
