@@ -7,6 +7,9 @@ from db.mongo import db
 
 # app = FastAPI()
 from db.user_operations import ensure_user_indexes
+from db.token_blacklist import ensure_blacklist_indexes
+from db.refresh_tokens import ensure_refresh_token_indexes
+from db.password_reset import ensure_password_reset_indexes
 from routes import problems, analytics, auth
 from contextlib import asynccontextmanager
 
@@ -15,7 +18,13 @@ async def lifespan(app: FastAPI):
     # Startup
     try:
         await ensure_user_indexes()
+        await ensure_blacklist_indexes()
+        await ensure_refresh_token_indexes()
+        await ensure_password_reset_indexes()
         print("✅ MongoDB user indexes created")
+        print("✅ MongoDB blacklist indexes created")
+        print("✅ MongoDB refresh token indexes created")
+        print("✅ MongoDB password reset indexes created")
     except Exception as e:
         print(f"⚠️ MongoDB connection failed: {e}")
         print("🔄 Server will start without MongoDB connection (development mode)")
