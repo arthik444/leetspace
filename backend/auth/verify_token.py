@@ -9,7 +9,9 @@ from models.user import TokenData, UserInDB
 # from db.temp_storage import find_user_by_email
 # Use MongoDB for user operations
 from db.user_operations import find_user_by_email
+from db.token_blacklist import is_token_blacklisted
 import os
+import uuid
 
 # Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
@@ -38,7 +40,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
+    # Add unique identifier for token (for blacklisting)
+    jti = str(uuid.uuid4())
+    to_encode.update({
+        "exp": expire,
+        "jti": jti,
+        "iat": datetime.utcnow(),
+        "type": "access"
+    })
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -67,8 +76,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        jti: str = payload.get("jti")
         if email is None:
             raise credentials_exception
+        # Handle tokens without JTI (older tokens)
+        if jti:
+            # Check if token is blacklisted (only for tokens with JTI)
+            if await is_token_blacklisted(jti):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        # Note: Older tokens without JTI cannot be individually blacklisted,
+        # but they will expire naturally or be invalidated by logout-all
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception

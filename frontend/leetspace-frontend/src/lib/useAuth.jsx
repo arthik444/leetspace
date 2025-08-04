@@ -91,6 +91,75 @@ export function AuthProvider({ children }) {
     }
   };
 
+   // Logout all devices
+   const logoutAllDevices = async () => {
+    try {
+      await apiService.logoutAllDevices();
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      console.error('Logout all devices failed:', error);
+      setUser(null);
+      throw error;
+    }
+  };
+
+  // Update profile
+  const updateProfile = async (profileData) => {
+    try {
+      const updatedUser = await apiService.updateProfile(profileData);
+      setUser(updatedUser);
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      throw error;
+    }
+  };
+
+  // Change password
+  const changePassword = async (passwordData) => {
+    try {
+      await apiService.changePassword(passwordData);
+      // After password change, user needs to login again
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      console.error('Password change failed:', error);
+      throw error;
+    }
+  };
+
+  // Delete account
+  const deleteAccount = async () => {
+    try {
+      await apiService.deleteAccount();
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      throw error;
+    }
+  };
+
+  // Forgot password
+  const forgotPassword = async (email) => {
+    try {
+      return await apiService.forgotPassword(email);
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (token, newPassword) => {
+    try {
+      return await apiService.resetPassword(token, newPassword);
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      throw error;
+    }
+  };
   // Auth context value
   const value = {
     user,
@@ -98,6 +167,12 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    logoutAllDevices,
+    updateProfile,
+    changePassword,
+    deleteAccount,
+    forgotPassword,
+    resetPassword,
     isAuthenticated: !!user,
   };
 

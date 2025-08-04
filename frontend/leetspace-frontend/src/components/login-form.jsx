@@ -12,7 +12,7 @@ import { useState } from "react";
 // } from "firebase/auth";
 // import { auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
@@ -200,6 +200,17 @@ export function LoginForm({ className, ...props }) {
           Continue with Google
         </Button>
       </div>
+
+      {isLogin && (
+        <div className="text-center text-sm">
+          <Link
+            to="/forgot-password"
+            className="text-blue-600 hover:text-blue-800 underline underline-offset-4"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+      )}
 
       <div className="text-center text-sm">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}

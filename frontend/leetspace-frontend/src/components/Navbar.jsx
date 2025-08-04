@@ -4,7 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 // import { auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/components/ThemeProvider";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, User } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   // const [user, setUser] = useState(null);
@@ -46,15 +48,24 @@ export default function Navbar() {
         </button>
 
         {user ? (
-          // <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">Logout</button>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              {user.full_name || user.email}
-            </span>
-            <button onClick={handleLogout} className="text-red-500 cursor-pointer underline">
+          <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="text-sm">{user.full_name || user.email}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+              <User className="h-4 w-4 mr-2" />
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
               Logout
-            </button>
-          </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         ) : (
           <Link to="/auth" className="underline">Login</Link>
         )}

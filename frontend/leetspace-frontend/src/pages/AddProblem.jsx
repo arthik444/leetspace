@@ -181,9 +181,17 @@ export default function AddProblem() {
       sessionStorage.removeItem("addProblemDraft");
       navigate(`/problems/${result.id}`);
     } catch (err) {
-      if (err.message.includes('409') || err.message.includes('Conflict')) {
-        setFormError("A problem with this title or URL already exists.");
-        setConflicts([]);
+      console.log("Error details:", err); // Debug log
+      
+      if (err.status === 409 || err.message.includes('Conflict')) {
+        // Parse conflicts from error response
+        if (err.data && err.data.conflicts && err.data.conflicts.length > 0) {
+          setConflicts(err.data.conflicts);
+          setFormError("Problem with conflicting title or URL detected. Please check the links below.");
+        } else {
+          setConflicts([]);
+          setFormError("A problem with this title or URL already exists.");
+        }
       } else {
         setFormError(err.message || "Something went wrong while saving the problem.");
         setConflicts([]);

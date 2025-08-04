@@ -33,11 +33,18 @@ async def add_problem(
 
     conflicts = []
 
-    title_conflict = await collection.find_one({"title": problem_dict["title"]})
+    # Check for conflicts within the current user's problems only
+    title_conflict = await collection.find_one({
+        "title": problem_dict["title"], 
+        "user_id": str(current_user.id)
+    })
     if title_conflict:
         conflicts.append({"field": "title", "id": str(title_conflict["_id"])})
 
-    url_conflict = await collection.find_one({"url": problem_dict["url"]})
+    url_conflict = await collection.find_one({
+        "url": problem_dict["url"], 
+        "user_id": str(current_user.id)
+    })
     if url_conflict:
         conflicts.append({"field": "url", "id": str(url_conflict["_id"])})
 
@@ -66,7 +73,7 @@ async def get_problems(
     order: Optional[str] = "desc",
     current_user: UserInDB = Depends(get_current_active_user)
 ):
-    query = {"user_id": user_id}
+    query = {"user_id": str(current_user.id)}
 
     if difficulty:
         query["difficulty"] = difficulty
@@ -182,6 +189,7 @@ async def update_problem(
     if "title" in update_data:
         existing_title = await collection.find_one({
             "title": update_data["title"],
+            "user_id": str(current_user.id),
             "_id": {"$ne": ObjectId(id)}
         })
         if existing_title:
@@ -190,6 +198,7 @@ async def update_problem(
     if "url" in update_data:
         existing_url = await collection.find_one({
             "url": update_data["url"],
+            "user_id": str(current_user.id),
             "_id": {"$ne": ObjectId(id)}
         })
         if existing_url:
