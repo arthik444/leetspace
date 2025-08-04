@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import axios from "axios";
+import apiService from "@/lib/api";
 import { Filter, X, Search, Tag, ChevronUp,Trash2  } from "lucide-react"
 
 import {
@@ -194,13 +194,9 @@ export function DataTable({ data, columns,onDataChange }) {
     if (selectedCount === 0) return;
 
     try {
-      // Delete all selected problems
+      // Delete all selected problems using apiService
       await Promise.all(
-        selectedIds.map(id => 
-          axios.delete(`/api/problems/${id}`, {
-            baseURL: "http://localhost:8000",
-          })
-        )
+        selectedIds.map(id => apiService.deleteProblem(id))
       );
 
       // Clear selection first

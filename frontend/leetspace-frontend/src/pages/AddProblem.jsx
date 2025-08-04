@@ -8,7 +8,7 @@ import MDEditor from "@uiw/react-md-editor";
 import CodeEditor from "@/components/CodeEditor";
 import apiService from "@/lib/api";
 import { useAuth } from "@/lib/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AlertCircle,Plus,ExternalLink } from "lucide-react";
 
 
@@ -354,19 +354,20 @@ export default function AddProblem() {
           </div>
         )}
         {conflicts.length > 0 && (
-          <div className="bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 px-4 py-2 rounded-md mt-4 space-y-1">
+          <div className="bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 px-4 py-2 rounded-md mt-4 space-y-2">
             {conflicts.map((conflict) => (
               <div key={conflict.field} className="flex items-center justify-between">
                 <span>
                   A problem with this <strong>{conflict.field}</strong> already exists.
                 </span>
-                <a
-                  href={`/problems/${conflict.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to={`/problems/${conflict.id}`}
+                  className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline cursor-pointer"
+                  title="View existing problem"
                 >
+                  <span className="text-sm">View</span>
                   <ExternalLink className="w-4 h-4" />
-                </a>
+                </Link>
               </div>
             ))}
           </div>
