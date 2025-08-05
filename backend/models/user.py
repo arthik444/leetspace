@@ -74,7 +74,8 @@ class UserInDB(UserBase):
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str}
+        json_encoders={ObjectId: str},
+        from_attributes=True
     )
     
     # id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
@@ -87,7 +88,8 @@ class User(UserBase):
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str}
+        json_encoders={ObjectId: str},
+        from_attributes=True
     )
     
     # id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")

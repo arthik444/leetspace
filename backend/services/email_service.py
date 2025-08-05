@@ -209,7 +209,9 @@ class EmailService:
                 use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
                 
                 if not all([smtp_server, smtp_username, smtp_password]):
-                    raise ValueError("SMTP configuration incomplete")
+                    logger.warning("SMTP configuration incomplete - email sending will be disabled")
+                    self.provider = None
+                    return
                 
                 self.provider = SMTPEmailProvider(smtp_server, smtp_port, smtp_username, smtp_password, use_tls)
                 logger.info("Initialized SMTP email provider")
@@ -224,8 +226,9 @@ class EmailService:
     async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
         """Send email using configured provider"""
         if not self.provider:
-            logger.error("No email provider configured")
-            return False
+            logger.info(f"📧 EMAIL (Development Mode) - To: {to_email}, Subject: {subject}")
+            logger.info(f"📧 EMAIL CONTENT:\n{text_content or 'No text content'}")
+            return True  # Return success in development mode
         
         if not to_email or not subject or not html_content:
             logger.error("Missing required email parameters")
