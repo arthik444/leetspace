@@ -54,6 +54,8 @@ class UserDatabase:
             user_data.setdefault("created_at", now)
             user_data.setdefault("updated_at", now)
             user_data.setdefault("is_active", True)
+            user_data.setdefault("email_verified", False)
+            user_data.setdefault("auth_provider", "email")
             
             result = await self.collection.insert_one(user_data)
             # Convert ObjectId to string for Pydantic

@@ -3,16 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-// import {
-//   signInWithEmailAndPassword,
-//   createUserWithEmailAndPassword,
-//   sendPasswordResetEmail,
-//   signInWithPopup,
-//   GoogleAuthProvider,
-// } from "firebase/auth";
-// import { auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
@@ -21,8 +14,8 @@ export function LoginForm({ className, ...props }) {
   const [isLogin, setIsLogin] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  // const [resetSent, setResetSent] = useState(false);
-  const { login, register } = useAuth();
+  const [showPasswordStrength, setShowPasswordStrength] = useState(false);
+  const { login, register, googleLogin } = useAuth();
   const location = useLocation();
 
   // Get the intended destination from location state, default to home
@@ -97,16 +90,46 @@ export function LoginForm({ className, ...props }) {
   // };
 
   const handleGoogleLogin = async () => {
-    // try {
-    //   const provider = new GoogleAuthProvider();
-    //   await signInWithPopup(auth, provider);
-    //   navigate("/");
-    // } catch (err) {
-    //   setErrorMsg(err.message);
-    // }
-    // For now, show message that Google login is not implemented
-    // You can implement this later with Google OAuth2
-    setErrorMsg("Google login not implemented yet. Please use email/password.");
+    setLoading(true);
+    setErrorMsg("");
+    
+    try {
+      // Check if Google Sign-In is available
+      if (!window.google) {
+        setErrorMsg("Google Sign-In is not loaded. Please refresh the page and try again.");
+        return;
+      }
+
+      // Get Google ID token using Google Identity Services
+      const response = await new Promise((resolve, reject) => {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            reject(new Error("Google Sign-In was cancelled or not displayed"));
+          }
+        });
+
+        window.google.accounts.id.callback = (credentialResponse) => {
+          if (credentialResponse.credential) {
+            resolve(credentialResponse);
+          } else {
+            reject(new Error("Failed to get Google credential"));
+          }
+        };
+      });
+
+      // Send credential to backend
+      if (googleLogin) {
+        await googleLogin(response.credential);
+        navigate(from, { replace: true });
+      } else {
+        setErrorMsg("Google login function not available");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      setErrorMsg(error.message || "Google login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -155,26 +178,37 @@ export function LoginForm({ className, ...props }) {
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
             {isLogin && (
-              <button
-                type="button"
-                // onClick={handleResetPassword}
-                onClick={() => setErrorMsg("Password reset not implemented yet.")}
-                className="ml-auto text-sm underline-offset-4 hover:underline"
+              <Link
+                to="/forgot-password"
+                className="ml-auto text-sm underline-offset-4 hover:underline text-blue-600"
               >
                 Forgot your password?
-              </button>
+              </Link>
             )}
           </div>
-          {/* <Input id="password" type="password" required value={password}
-            onChange={(e) => setPassword(e.target.value)} /> */}
           <Input 
             id="password" 
             type="password" 
             required 
             value={password}
-            onChange={(e) => setPassword(e.target.value)} 
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (!isLogin) {
+                setShowPasswordStrength(e.target.value.length > 0);
+              }
+            }}
+            onFocus={() => !isLogin && setShowPasswordStrength(true)}
           />
 
+          {/* Password Strength Indicator for Registration */}
+          {!isLogin && showPasswordStrength && (
+            <PasswordStrengthIndicator 
+              password={password}
+              email={email}
+              fullName={fullName}
+              className="mt-2"
+            />
+          )}
         </div>
 
         {/* {resetSent && <div className="text-sm text-green-600 text-center">✅ Reset email sent</div>}
@@ -195,9 +229,14 @@ export function LoginForm({ className, ...props }) {
           </span>
         </div>
 
-        <Button variant="outline" className="w-full gap-2" onClick={handleGoogleLogin}>
+        <Button 
+          variant="outline" 
+          className="w-full gap-2" 
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
           <GoogleIcon />
-          Continue with Google
+          {loading ? "Signing in..." : "Continue with Google"}
         </Button>
       </div>
 
