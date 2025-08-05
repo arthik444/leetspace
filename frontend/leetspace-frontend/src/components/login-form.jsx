@@ -89,46 +89,61 @@ export function LoginForm({ className, ...props }) {
   //   }
   // };
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const handleGoogleLogin = async () => {
-    setLoading(true);
-    setErrorMsg("");
-    
     try {
-      // Check if Google Sign-In is available
+      setIsGoogleLoading(true);
+      setErrorMsg("");
+      
       if (!window.google) {
-        setErrorMsg("Google Sign-In is not loaded. Please refresh the page and try again.");
-        return;
+        throw new Error("Google Sign-In SDK not loaded");
       }
 
-      // Get Google ID token using Google Identity Services
-      const response = await new Promise((resolve, reject) => {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            reject(new Error("Google Sign-In was cancelled or not displayed"));
+      // Initialize Google Sign-In if not already done
+      if (!window.googleInitialized) {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "your-google-client-id.apps.googleusercontent.com";
+        
+        // Check if we have a valid client ID
+        if (clientId === "your-google-client-id.apps.googleusercontent.com" || 
+            clientId === "development-placeholder.apps.googleusercontent.com") {
+          throw new Error("Google Client ID not configured. Please set up Google OAuth in your .env file.");
+        }
+        
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (credentialResponse) => {
+            try {
+              if (credentialResponse.credential && googleLogin) {
+                await googleLogin(credentialResponse.credential);
+                navigate(from, { replace: true });
+              } else {
+                setErrorMsg("Failed to get Google credential");
+              }
+            } catch (error) {
+              console.error("Google login callback error:", error);
+              setErrorMsg("Google login failed. Please try again.");
+            } finally {
+              setIsGoogleLoading(false);
+            }
           }
         });
+        window.googleInitialized = true;
+      }
 
-        window.google.accounts.id.callback = (credentialResponse) => {
-          if (credentialResponse.credential) {
-            resolve(credentialResponse);
-          } else {
-            reject(new Error("Failed to get Google credential"));
-          }
-        };
+      // Trigger the Google Sign-In prompt
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log("Google Sign-In prompt not displayed:", notification.getNotDisplayedReason());
+          setErrorMsg("Google Sign-In was not displayed. Please try again or use email login.");
+          setIsGoogleLoading(false);
+        }
       });
 
-      // Send credential to backend
-      if (googleLogin) {
-        await googleLogin(response.credential);
-        navigate(from, { replace: true });
-      } else {
-        setErrorMsg("Google login function not available");
-      }
     } catch (error) {
       console.error("Google login error:", error);
       setErrorMsg(error.message || "Google login failed. Please try again.");
-    } finally {
-      setLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -233,10 +248,10 @@ export function LoginForm({ className, ...props }) {
           variant="outline" 
           className="w-full gap-2" 
           onClick={handleGoogleLogin}
-          disabled={loading}
+          disabled={loading || isGoogleLoading}
         >
           <GoogleIcon />
-          {loading ? "Signing in..." : "Continue with Google"}
+          {isGoogleLoading ? "Signing in..." : "Continue with Google"}
         </Button>
       </div>
 
