@@ -91,59 +91,80 @@ export function LoginForm({ className, ...props }) {
 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  // Check if Google OAuth is properly configured
+  const isGoogleConfigured = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    return clientId && 
+           clientId !== "your-google-client-id.apps.googleusercontent.com" && 
+           clientId !== "development-placeholder.apps.googleusercontent.com" &&
+           clientId.includes(".apps.googleusercontent.com");
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       setErrorMsg("");
       
+      // Check if Google OAuth is configured
+      if (!isGoogleConfigured()) {
+        setErrorMsg("Google Sign-In is not configured for this application. Please use email login.");
+        return;
+      }
+      
       if (!window.google) {
-        throw new Error("Google Sign-In SDK not loaded");
+        setErrorMsg("Google Sign-In SDK not loaded. Please refresh and try again.");
+        return;
       }
 
       // Initialize Google Sign-In if not already done
       if (!window.googleInitialized) {
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "your-google-client-id.apps.googleusercontent.com";
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
         
-        // Check if we have a valid client ID
-        if (clientId === "your-google-client-id.apps.googleusercontent.com" || 
-            clientId === "development-placeholder.apps.googleusercontent.com") {
-          throw new Error("Google Client ID not configured. Please set up Google OAuth in your .env file.");
-        }
-        
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (credentialResponse) => {
-            try {
-              if (credentialResponse.credential && googleLogin) {
-                await googleLogin(credentialResponse.credential);
-                navigate(from, { replace: true });
-              } else {
-                setErrorMsg("Failed to get Google credential");
+        try {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (credentialResponse) => {
+              try {
+                if (credentialResponse.credential && googleLogin) {
+                  await googleLogin(credentialResponse.credential);
+                  navigate(from, { replace: true });
+                } else {
+                  setErrorMsg("Failed to get Google credential");
+                }
+              } catch (error) {
+                console.error("Google login callback error:", error);
+                setErrorMsg("Google login failed. Please try again.");
+              } finally {
+                setIsGoogleLoading(false);
               }
-            } catch (error) {
-              console.error("Google login callback error:", error);
-              setErrorMsg("Google login failed. Please try again.");
-            } finally {
-              setIsGoogleLoading(false);
-            }
-          }
-        });
-        window.googleInitialized = true;
+            },
+            cancel_on_tap_outside: false
+          });
+          window.googleInitialized = true;
+        } catch (initError) {
+          console.error("Google initialization error:", initError);
+          setErrorMsg("Failed to initialize Google Sign-In. Please try email login.");
+          return;
+        }
       }
 
       // Trigger the Google Sign-In prompt
       window.google.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           console.log("Google Sign-In prompt not displayed:", notification.getNotDisplayedReason());
-          setErrorMsg("Google Sign-In was not displayed. Please try again or use email login.");
+          setErrorMsg("Google Sign-In is not available. Please use email login.");
           setIsGoogleLoading(false);
         }
       });
 
     } catch (error) {
       console.error("Google login error:", error);
-      setErrorMsg(error.message || "Google login failed. Please try again.");
-      setIsGoogleLoading(false);
+      setErrorMsg("Google login is not available. Please use email login.");
+    } finally {
+      // Ensure loading state is reset after a delay if no callback occurs
+      setTimeout(() => {
+        setIsGoogleLoading(false);
+      }, 3000);
     }
   };
 
@@ -237,22 +258,32 @@ export function LoginForm({ className, ...props }) {
           {loading ? (isLogin ? "Logging in..." : "Signing up...") : isLogin ? "Login" : "Sign Up"}
         </Button>
         
-        <div className="relative text-center text-sm">
-          <div className="absolute inset-0 top-1/2 border-t border-border z-0" />
-          <span className="relative z-10 bg-white px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
+        {isGoogleConfigured() && (
+          <>
+            <div className="relative text-center text-sm">
+              <div className="absolute inset-0 top-1/2 border-t border-border z-0" />
+              <span className="relative z-10 bg-white px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
 
-        <Button 
-          variant="outline" 
-          className="w-full gap-2" 
-          onClick={handleGoogleLogin}
-          disabled={loading || isGoogleLoading}
-        >
-          <GoogleIcon />
-          {isGoogleLoading ? "Signing in..." : "Continue with Google"}
-        </Button>
+            <Button 
+              variant="outline" 
+              className="w-full gap-2" 
+              onClick={handleGoogleLogin}
+              disabled={loading || isGoogleLoading}
+            >
+              <GoogleIcon />
+              {isGoogleLoading ? "Signing in..." : "Continue with Google"}
+            </Button>
+          </>
+        )}
+        
+        {!isGoogleConfigured() && (
+          <div className="text-xs text-gray-500 text-center mt-2 px-4 py-2 bg-gray-50 rounded">
+            💡 Google Sign-In not configured for development
+          </div>
+        )}
       </div>
 
       {isLogin && (
