@@ -90,7 +90,7 @@ export function LoginForm({ className, ...props }) {
   //   }
   // };
 
-  const handleGoogleLogin = async () => {
+    const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       setErrorMsg("");
@@ -107,73 +107,65 @@ export function LoginForm({ className, ...props }) {
         throw new Error("Google Sign-In SDK not loaded. Please refresh the page and try again.");
       }
 
-      // Create a promise to handle the sign-in
-      const signInPromise = new Promise((resolve, reject) => {
-        try {
-          // Initialize Google Sign-In
-          window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (credentialResponse) => {
-              try {
-                if (credentialResponse.credential) {
-                  resolve(credentialResponse.credential);
-                } else {
-                  reject(new Error("No credential received from Google"));
-                }
-              } catch (error) {
-                reject(error);
-              }
-            },
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
-
-          // Try to render the button and prompt
-          setTimeout(() => {
-            try {
-              window.google.accounts.id.prompt((notification) => {
-                if (notification.isNotDisplayed()) {
-                  const reason = notification.getNotDisplayedReason();
-                  console.log("Google Sign-In not displayed:", reason);
-                  
-                  // Handle different reasons
-                  if (reason === 'suppressed_by_user') {
-                    reject(new Error("Google Sign-In was disabled. Please enable third-party cookies or use email login."));
-                  } else if (reason === 'unregistered_origin') {
-                    reject(new Error("This domain is not authorized for Google Sign-In."));
-                  } else {
-                    reject(new Error("Google Sign-In is not available. Please use email login."));
-                  }
-                } else if (notification.isSkippedMoment()) {
-                  reject(new Error("Google Sign-In was skipped. Please try again or use email login."));
-                }
-              });
-            } catch (promptError) {
-              console.error("Error showing Google prompt:", promptError);
-              reject(new Error("Could not show Google Sign-In. Please use email login."));
+      // Initialize Google Sign-In with simplified approach
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (credentialResponse) => {
+          try {
+            if (credentialResponse.credential && googleLogin) {
+              await googleLogin(credentialResponse.credential);
+              navigate(from, { replace: true });
+            } else {
+              setErrorMsg("No credential received from Google");
             }
-          }, 100);
-
-          // Set a timeout for the entire process
-          setTimeout(() => {
-            reject(new Error("Google Sign-In timed out. Please try again or use email login."));
-          }, 10000);
-
-        } catch (initError) {
-          console.error("Google initialization error:", initError);
-          reject(new Error("Failed to initialize Google Sign-In. Please use email login."));
-        }
+          } catch (error) {
+            console.error("Google login callback error:", error);
+            setErrorMsg(error.message || "Google login failed");
+          } finally {
+            setIsGoogleLoading(false);
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: false, // Disable FedCM to avoid browser compatibility issues
       });
 
-      // Wait for sign-in result
-      const credential = await signInPromise;
-      
-      if (googleLogin) {
-        await googleLogin(credential);
-        navigate(from, { replace: true });
-      } else {
-        throw new Error("Google login function not available");
+      // Show the Google One Tap prompt
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed()) {
+            const reason = notification.getNotDisplayedReason();
+            console.log("Google Sign-In not displayed:", reason);
+            
+            // Handle different reasons with more user-friendly messages
+            if (reason === 'suppressed_by_user') {
+              setErrorMsg("Google Sign-In was disabled in your browser. Please enable third-party cookies and try again.");
+            } else if (reason === 'unregistered_origin') {
+              setErrorMsg("This domain is not authorized for Google Sign-In. Please use email login.");
+            } else if (reason === 'browser_not_supported') {
+              setErrorMsg("Your browser doesn't support Google Sign-In. Please use email login.");
+            } else {
+              setErrorMsg("Google Sign-In is not available. Please use email login.");
+            }
+            setIsGoogleLoading(false);
+          } else if (notification.isSkippedMoment()) {
+            setErrorMsg("Google Sign-In was skipped. Please try the button again or use email login.");
+            setIsGoogleLoading(false);
+          }
+        });
+      } catch (promptError) {
+        console.error("Error showing Google prompt:", promptError);
+        setErrorMsg("Could not show Google Sign-In. Please use email login.");
+        setIsGoogleLoading(false);
       }
+
+      // Set a timeout for the process
+      setTimeout(() => {
+        if (isGoogleLoading) {
+          setErrorMsg("Google Sign-In timed out. Please try again or use email login.");
+          setIsGoogleLoading(false);
+        }
+      }, 8000);
 
     } catch (error) {
       console.error("Google login error:", error);

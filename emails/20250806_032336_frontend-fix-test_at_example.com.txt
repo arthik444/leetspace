@@ -1,0 +1,66 @@
+
+=== EMAIL MESSAGE ===
+From: noreply@leetspace.com
+To: frontend-fix-test@example.com
+Subject: Verify Your Email - LeetSpace
+Date: 2025-08-06 03:23:36
+
+=== TEXT CONTENT ===
+
+        Welcome to LeetSpace!
+        
+        Hello Frontend Fix Test,
+        
+        Thank you for signing up for LeetSpace! To complete your registration, please verify your email address by visiting this link:
+        
+        http://localhost:3000/verify-email?token=T3f7GtAJFsf5zoX7D8IXFRdRoqFOnC8iP2nKh5osZMA
+        
+        This verification link will expire in 24 hours for security reasons.
+        
+        If you didn't create an account with LeetSpace, you can safely ignore this email.
+        
+        © 2024 LeetSpace. All rights reserved.
+        
+
+=== HTML CONTENT ===
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Verify Your Email</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+                .button { display: inline-block; padding: 12px 30px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+                .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Welcome to LeetSpace!</h1>
+                </div>
+                <div class="content">
+                    <p>Hello Frontend Fix Test,</p>
+                    <p>Thank you for signing up for LeetSpace! To complete your registration, please verify your email address by clicking the button below:</p>
+                    <p style="text-align: center; margin: 30px 0;">
+                        <a href="http://localhost:3000/verify-email?token=T3f7GtAJFsf5zoX7D8IXFRdRoqFOnC8iP2nKh5osZMA" class="button">Verify Email Address</a>
+                    </p>
+                    <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; color: #2563eb;">http://localhost:3000/verify-email?token=T3f7GtAJFsf5zoX7D8IXFRdRoqFOnC8iP2nKh5osZMA</p>
+                    <p>This verification link will expire in 24 hours for security reasons.</p>
+                    <p>If you didn't create an account with LeetSpace, you can safely ignore this email.</p>
+                </div>
+                <div class="footer">
+                    <p>© 2024 LeetSpace. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        
+
+=== END EMAIL ===

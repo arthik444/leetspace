@@ -60,7 +60,7 @@ class ApiService {
         return this.refreshPromise;
       }
   
-      this.refreshPromise = fetch(`${this.baseURL}/auth/refresh`, {
+      this.refreshPromise = fetch(`${this.baseURL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,14 +153,14 @@ class ApiService {
 
   // Authentication endpoints
   async register(userData) {
-    return this.request('/auth/register', {
+    return this.request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
   async login(credentials) {
-    const response = await this.request('/auth/login/json', {
+    const response = await this.request('/api/auth/login/json', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -173,17 +173,17 @@ class ApiService {
   }
 
   async getCurrentUser() {
-    return this.request('/auth/me');
+    return this.request('/api/auth/me');
   }
 
   async verifyToken() {
-    return this.request('/auth/verify');
+    return this.request('/api/auth/verify');
   }
 
   async logout() {
     try {
       // Call backend logout to blacklist the token
-      await this.request('/auth/logout', {
+      await this.request('/api/auth/logout', {
         method: 'POST'
       });
     } catch (error) {
@@ -197,7 +197,7 @@ class ApiService {
 
   async logoutAllDevices() {
     try {
-      await this.request('/auth/logout-all', {
+      await this.request('/api/auth/logout-all', {
         method: 'POST'
       });
       this.clearTokens();
@@ -211,21 +211,21 @@ class ApiService {
 
   // Profile management
   async updateProfile(profileData) {
-    return this.request('/auth/profile', {
+    return this.request('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
   }
 
   async changePassword(passwordData) {
-    return this.request('/auth/change-password', {
+    return this.request('/api/auth/change-password', {
       method: 'POST',
       body: JSON.stringify(passwordData),
     });
   }
 
   async deleteAccount() {
-    const response = await this.request('/auth/account', {
+    const response = await this.request('/api/auth/account', {
       method: 'DELETE',
     });
     this.clearTokens();
@@ -234,14 +234,14 @@ class ApiService {
 
   // Password reset
   async forgotPassword(email) {
-    return this.request('/auth/forgot-password', {
+    return this.request('/api/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
   }
 
   async resetPassword(token, newPassword) {
-    return this.request('/auth/reset-password', {
+    return this.request('/api/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({
         token,
@@ -252,7 +252,7 @@ class ApiService {
 
    // Google OAuth
    async googleAuth(credential) {
-    const response = await this.request('/auth/google', {
+    const response = await this.request('/api/auth/google', {
       method: 'POST',
       body: JSON.stringify({ credential }),
     });
@@ -266,14 +266,14 @@ class ApiService {
 
   // Email verification
   async verifyEmail(token) {
-    return this.request('/auth/verify-email', {
+    return this.request('/api/auth/verify-email', {
       method: 'POST',
       body: JSON.stringify({ token }),
     });
   }
 
   async resendVerification(email) {
-    return this.request('/auth/resend-verification', {
+    return this.request('/api/auth/resend-verification', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
