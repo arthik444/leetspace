@@ -7,7 +7,7 @@ import { useState,useEffect } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import CodeEditor from "@/components/CodeEditor";
 import axios from "axios";
-import { useAuth } from "@/lib/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle,Plus,ExternalLink } from "lucide-react";
 

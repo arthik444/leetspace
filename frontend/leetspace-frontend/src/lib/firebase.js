@@ -29,20 +29,20 @@ setPersistence(auth, browserLocalPersistence)
     console.error("Error setting auth persistence:", error);
   });
 
-// Connect to auth emulator in development (optional)
+// Note: Firebase emulator connection is disabled by default
+// To enable it, uncomment the code below and ensure the emulator is running on port 9099
+/*
 if (import.meta.env.MODE === 'development') {
   try {
-    // Only try to connect to emulator if we haven't already connected
-    // Check if we're running on localhost and the auth URL doesn't include the emulator
-    if (window.location.hostname === 'localhost' && !auth.config?.emulator) {
+    if (window.location.hostname === 'localhost') {
       connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
       console.log("Connected to Firebase Auth emulator");
     }
   } catch (error) {
-    // Emulator might already be connected, not available, or we're not in the right environment
-    console.log("Auth emulator connection skipped:", error.message);
+    console.log("Auth emulator connection failed:", error.message);
   }
 }
+*/
 
 // Auth error code mappings for better user experience
 export const AUTH_ERROR_MESSAGES = {

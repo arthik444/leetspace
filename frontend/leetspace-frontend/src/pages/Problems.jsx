@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "@/lib/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/data-table/columns";
 import { DeleteProblemDialog } from "@/components/DeleteProblemDialog";

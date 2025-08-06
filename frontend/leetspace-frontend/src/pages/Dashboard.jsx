@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
