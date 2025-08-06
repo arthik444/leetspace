@@ -7,6 +7,7 @@ from typing import Optional, List
 from abc import ABC, abstractmethod
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 # Optional imports for different providers
 try:
@@ -32,15 +33,60 @@ class EmailProvider(ABC):
     async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
         pass
 
+class FileEmailProvider(EmailProvider):
+    """File Email Provider - saves emails to files for easy debugging"""
+    
+    def __init__(self, file_path: str, from_email: str):
+        self.file_path = file_path
+        self.from_email = from_email
+        import os
+        os.makedirs(file_path, exist_ok=True)
+    
+    async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
+        """Save email to file"""
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}_{to_email.replace('@', '_at_')}.txt"
+            filepath = os.path.join(self.file_path, filename)
+            
+            email_content = f"""
+=== EMAIL MESSAGE ===
+From: {self.from_email}
+To: {to_email}
+Subject: {subject}
+Date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+=== TEXT CONTENT ===
+{text_content or 'No text content'}
+
+=== HTML CONTENT ===
+{html_content}
+
+=== END EMAIL ===
+"""
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(email_content)
+            
+            print(f"📧 Email saved to: {filepath}")
+            print(f"📬 Subject: {subject}")
+            print(f"📮 To: {to_email}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to save email: {e}")
+            return False
+
 class SMTPEmailProvider(EmailProvider):
     """SMTP Email Provider"""
     
-    def __init__(self, smtp_server: str, smtp_port: int, username: str, password: str, use_tls: bool = True):
+    def __init__(self, smtp_server: str, smtp_port: int, username: str, password: str, use_tls: bool = True, from_email: str = None):
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
         self.username = username
         self.password = password
         self.use_tls = use_tls
+        self.from_email = from_email or username or "noreply@localhost"
         self.executor = ThreadPoolExecutor(max_workers=3)
     
     def _send_smtp_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
@@ -48,7 +94,7 @@ class SMTPEmailProvider(EmailProvider):
         try:
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
-            msg['From'] = self.username
+            msg['From'] = self.from_email
             msg['To'] = to_email
             
             # Add text content
@@ -65,9 +111,11 @@ class SMTPEmailProvider(EmailProvider):
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port)
                 server.starttls()
             else:
-                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port)
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port)
             
-            server.login(self.username, self.password)
+            # Only login if credentials are provided (MailHog doesn't need auth)
+            if self.username or self.password:
+                server.login(self.username, self.password)
             server.send_message(msg)
             server.quit()
             
@@ -187,7 +235,12 @@ class EmailService:
         email_provider = os.getenv("EMAIL_PROVIDER", "smtp").lower()
         
         try:
-            if email_provider == "sendgrid":
+            if email_provider == "file":
+                file_path = os.getenv("EMAIL_FILE_PATH", "/tmp/emails")
+                self.provider = FileEmailProvider(file_path, self.from_email)
+                logger.info("Initialized File email provider")
+                
+            elif email_provider == "sendgrid":
                 api_key = os.getenv("SENDGRID_API_KEY")
                 if not api_key:
                     raise ValueError("SENDGRID_API_KEY environment variable required")
@@ -208,10 +261,16 @@ class EmailService:
                 smtp_password = os.getenv("SMTP_PASSWORD")
                 use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
                 
-                if not all([smtp_server, smtp_username, smtp_password]):
-                    raise ValueError("SMTP configuration incomplete")
+                if not smtp_server:
+                    raise ValueError("SMTP server configuration missing")
                 
-                self.provider = SMTPEmailProvider(smtp_server, smtp_port, smtp_username, smtp_password, use_tls)
+                # For development with MailHog, credentials are optional
+                if not smtp_username:
+                    smtp_username = ""
+                if not smtp_password:
+                    smtp_password = ""
+                
+                self.provider = SMTPEmailProvider(smtp_server, smtp_port, smtp_username, smtp_password, use_tls,self.from_email)
                 logger.info("Initialized SMTP email provider")
                 
             else:

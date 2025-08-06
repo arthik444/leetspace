@@ -95,53 +95,90 @@ export function LoginForm({ className, ...props }) {
       setIsGoogleLoading(true);
       setErrorMsg("");
       
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "your-google-client-id.apps.googleusercontent.com";
+      
+      // Check if we have a valid client ID
+      if (clientId === "your-google-client-id.apps.googleusercontent.com" || 
+          clientId === "development-placeholder.apps.googleusercontent.com") {
+        throw new Error("Google Client ID not configured. Please contact the administrator.");
+      }
+
       if (!window.google) {
-        throw new Error("Google Sign-In SDK not loaded");
+        throw new Error("Google Sign-In SDK not loaded. Please refresh the page and try again.");
       }
 
-      // Initialize Google Sign-In if not already done
-      if (!window.googleInitialized) {
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "your-google-client-id.apps.googleusercontent.com";
-        
-        // Check if we have a valid client ID
-        if (clientId === "your-google-client-id.apps.googleusercontent.com" || 
-            clientId === "development-placeholder.apps.googleusercontent.com") {
-          throw new Error("Google Client ID not configured. Please set up Google OAuth in your .env file.");
-        }
-        
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (credentialResponse) => {
-            try {
-              if (credentialResponse.credential && googleLogin) {
-                await googleLogin(credentialResponse.credential);
-                navigate(from, { replace: true });
-              } else {
-                setErrorMsg("Failed to get Google credential");
+      // Create a promise to handle the sign-in
+      const signInPromise = new Promise((resolve, reject) => {
+        try {
+          // Initialize Google Sign-In
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (credentialResponse) => {
+              try {
+                if (credentialResponse.credential) {
+                  resolve(credentialResponse.credential);
+                } else {
+                  reject(new Error("No credential received from Google"));
+                }
+              } catch (error) {
+                reject(error);
               }
-            } catch (error) {
-              console.error("Google login callback error:", error);
-              setErrorMsg("Google login failed. Please try again.");
-            } finally {
-              setIsGoogleLoading(false);
-            }
-          }
-        });
-        window.googleInitialized = true;
-      }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
 
-      // Trigger the Google Sign-In prompt
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log("Google Sign-In prompt not displayed:", notification.getNotDisplayedReason());
-          setErrorMsg("Google Sign-In was not displayed. Please try again or use email login.");
-          setIsGoogleLoading(false);
+          // Try to render the button and prompt
+          setTimeout(() => {
+            try {
+              window.google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed()) {
+                  const reason = notification.getNotDisplayedReason();
+                  console.log("Google Sign-In not displayed:", reason);
+                  
+                  // Handle different reasons
+                  if (reason === 'suppressed_by_user') {
+                    reject(new Error("Google Sign-In was disabled. Please enable third-party cookies or use email login."));
+                  } else if (reason === 'unregistered_origin') {
+                    reject(new Error("This domain is not authorized for Google Sign-In."));
+                  } else {
+                    reject(new Error("Google Sign-In is not available. Please use email login."));
+                  }
+                } else if (notification.isSkippedMoment()) {
+                  reject(new Error("Google Sign-In was skipped. Please try again or use email login."));
+                }
+              });
+            } catch (promptError) {
+              console.error("Error showing Google prompt:", promptError);
+              reject(new Error("Could not show Google Sign-In. Please use email login."));
+            }
+          }, 100);
+
+          // Set a timeout for the entire process
+          setTimeout(() => {
+            reject(new Error("Google Sign-In timed out. Please try again or use email login."));
+          }, 10000);
+
+        } catch (initError) {
+          console.error("Google initialization error:", initError);
+          reject(new Error("Failed to initialize Google Sign-In. Please use email login."));
         }
       });
 
+      // Wait for sign-in result
+      const credential = await signInPromise;
+      
+      if (googleLogin) {
+        await googleLogin(credential);
+        navigate(from, { replace: true });
+      } else {
+        throw new Error("Google login function not available");
+      }
+
     } catch (error) {
       console.error("Google login error:", error);
-      setErrorMsg(error.message || "Google login failed. Please try again.");
+      setErrorMsg(error.message || "Google Sign-In failed. Please use email login.");
+    } finally {
       setIsGoogleLoading(false);
     }
   };
@@ -254,6 +291,11 @@ export function LoginForm({ className, ...props }) {
           {isGoogleLoading ? "Signing in..." : "Continue with Google"}
         </Button>
       </div>
+      
+      {/* Fallback message for Google OAuth issues */}
+      <div className="text-xs text-gray-500 text-center">
+          Having trouble with Google Sign-In? Make sure third-party cookies are enabled in your browser.
+        </div>
 
       {isLogin && (
         <div className="text-center text-sm">
