@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth Test</title>
+    <script src="https://accounts.google.com/gsi/client" onload="initGoogle()" defer></script>
+</head>
+<body>
+    <h1>Google OAuth Test Page</h1>
+    <div id="status">Loading...</div>
+    <div id="g_id_onload"
+         data-client_id="1057761828978-li9642c1di00k1i7el952tajnomuqb3n.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script>
+        function initGoogle() {
+            console.log('Google GSI SDK loaded successfully');
+            document.getElementById('status').innerHTML = '✅ Google SDK loaded successfully';
+            
+            // Test if we can initialize
+            try {
+                google.accounts.id.initialize({
+                    client_id: "1057761828978-li9642c1di00k1i7el952tajnomuqb3n.apps.googleusercontent.com",
+                    callback: handleCredentialResponse
+                });
+                console.log('Google initialized successfully');
+                document.getElementById('status').innerHTML += '<br>✅ Google OAuth initialized';
+            } catch (error) {
+                console.error('Google initialization failed:', error);
+                document.getElementById('status').innerHTML += '<br>❌ Google OAuth initialization failed: ' + error.message;
+            }
+        }
+
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            document.getElementById('status').innerHTML += '<br>✅ Google sign-in successful!';
+            
+            // You can send this token to your backend
+            fetch('http://localhost:8000/api/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    credential: response.credential
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Backend response:', data);
+                document.getElementById('status').innerHTML += '<br>✅ Backend authentication successful!';
+            })
+            .catch(error => {
+                console.error('Backend error:', error);
+                document.getElementById('status').innerHTML += '<br>❌ Backend authentication failed: ' + error.message;
+            });
+        }
+
+        // Fallback if Google SDK doesn't load
+        setTimeout(() => {
+            if (typeof google === 'undefined') {
+                document.getElementById('status').innerHTML = '❌ Google SDK failed to load. Check your internet connection.';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
