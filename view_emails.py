@@ -1,68 +1,109 @@
 #!/usr/bin/env python3
-import requests
-import json
+import os
+import glob
 from datetime import datetime
 import html
+import re
 
 def view_emails():
     try:
-        response = requests.get('http://localhost:8025/api/v2/messages')
-        data = response.json()
-        messages = data.get('items', [])
+        email_dir = '/workspace/emails'
+        
+        if not os.path.exists(email_dir):
+            print('❌ Email directory not found')
+            print('💡 Make sure email service is configured and emails have been sent')
+            return
+            
+        # Get all email files
+        email_files = glob.glob(os.path.join(email_dir, '*.txt'))
+        
+        if not email_files:
+            print('📭 No emails found')
+            print('💡 Try registering a user or requesting password reset to generate emails')
+            return
+            
+        # Sort by modification time (newest first)
+        email_files.sort(key=os.path.getmtime, reverse=True)
         
         print('📧 LEETSPACE EMAIL INBOX')
         print('=' * 60)
+        print(f'📁 Found {len(email_files)} email(s)')
+        print()
         
-        if not messages:
-            print('📭 No emails found')
-            return
+        for i, email_file in enumerate(email_files, 1):
+            filename = os.path.basename(email_file)
+            print(f'📨 EMAIL #{i} - {filename}')
             
-        for i, msg in enumerate(messages, 1):
-            # Get email details
-            subject = msg.get('Content', {}).get('Headers', {}).get('Subject', ['No Subject'])[0]
-            to_info = msg.get('To', [{}])[0]
-            to_email = f"{to_info.get('Mailbox', 'unknown')}@{to_info.get('Domain', 'unknown')}"
-            from_info = msg.get('From', {})
-            from_email = f"{from_info.get('Mailbox', 'unknown')}@{from_info.get('Domain', 'unknown')}"
-            created = msg.get('Created', '')
-            
-            # Format date
-            if created:
-                try:
-                    dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
-                    date_str = dt.strftime('%Y-%m-%d %H:%M:%S')
-                except:
-                    date_str = created
-            else:
+            try:
+                with open(email_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Parse email content
+                lines = content.split('\n')
+                from_email = 'Unknown'
+                to_email = 'Unknown'
+                subject = 'Unknown'
                 date_str = 'Unknown'
-            
-            print(f'\n📨 EMAIL #{i}')
-            print(f'Subject: {subject}')
-            print(f'From: {from_email}')
-            print(f'To: {to_email}')
-            print(f'Date: {date_str}')
-            print('-' * 40)
-            
-            # Get email body
-            body = msg.get('Content', {}).get('Body', '')
-            if body:
-                # Try to extract readable content
-                if 'html' in body.lower():
-                    print('📄 Email Content (HTML):')
-                    # Simple HTML tag removal for readability
-                    import re
-                    text_content = re.sub('<[^<]+?>', '', body)
-                    text_content = html.unescape(text_content)
-                    # Show first 300 characters
-                    print(text_content[:300] + '...' if len(text_content) > 300 else text_content)
-                else:
-                    print('📄 Email Content:')
-                    print(body[:300] + '...' if len(body) > 300 else body)
+                
+                for line in lines:
+                    if line.startswith('From: '):
+                        from_email = line[6:].strip()
+                    elif line.startswith('To: '):
+                        to_email = line[4:].strip()
+                    elif line.startswith('Subject: '):
+                        subject = line[9:].strip()
+                    elif line.startswith('Date: '):
+                        date_str = line[6:].strip()
+                
+                print(f'Subject: {subject}')
+                print(f'From: {from_email}')
+                print(f'To: {to_email}')
+                print(f'Date: {date_str}')
+                print('-' * 40)
+                
+                # Extract and display content
+                if '=== TEXT CONTENT ===' in content:
+                    text_start = content.find('=== TEXT CONTENT ===')
+                    html_start = content.find('=== HTML CONTENT ===')
+                    
+                    if text_start != -1:
+                        text_end = html_start if html_start != -1 else content.find('=== END EMAIL ===')
+                        text_content = content[text_start + len('=== TEXT CONTENT ==='):text_end].strip()
+                        
+                        if text_content and text_content != 'No text content':
+                            print('📄 Email Content (Text):')
+                            print(text_content[:500] + '...' if len(text_content) > 500 else text_content)
+                        elif html_start != -1:
+                            html_end = content.find('=== END EMAIL ===')
+                            html_content = content[html_start + len('=== HTML CONTENT ==='):html_end].strip()
+                            
+                            print('📄 Email Content (HTML):')
+                            # Simple HTML tag removal for readability
+                            text_from_html = re.sub('<[^<]+?>', '', html_content)
+                            text_from_html = html.unescape(text_from_html)
+                            text_from_html = re.sub(r'\s+', ' ', text_from_html).strip()
+                            
+                            print(text_from_html[:500] + '...' if len(text_from_html) > 500 else text_from_html)
+                        
+                        # Extract verification/reset links
+                        if 'verify-email' in content:
+                            match = re.search(r'http://[^\s]+verify-email[^\s]*', content)
+                            if match:
+                                print(f'\n🔗 Verification Link: {match.group()}')
+                        elif 'reset-password' in content:
+                            match = re.search(r'http://[^\s]+reset-password[^\s]*', content)
+                            if match:
+                                print(f'\n🔗 Reset Link: {match.group()}')
+                
+            except Exception as file_error:
+                print(f'❌ Error reading {filename}: {file_error}')
             
             print('=' * 60)
+            print()
             
     except Exception as e:
-        print(f'❌ Error fetching emails: {e}')
+        print(f'❌ Error accessing emails: {e}')
+        print('💡 Make sure the email service is properly configured')
 
 if __name__ == '__main__':
     view_emails()
