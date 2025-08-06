@@ -6,15 +6,18 @@ import Problems from './pages/Problems';
 import AddProblem from './pages/AddProblem';
 import ProblemDetail from './pages/problemDetail';
 import EditProblem from "./pages/EditProblem";
+import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/lib/useAuth";
+import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
-import "./index.css" 
+import "./index.css";
+
 function AppWrapper() {
   return (
     <ThemeProvider>
       <AuthProvider>
-      <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
+        <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
           <Router>
             <App />
           </Router>
@@ -31,26 +34,61 @@ function AppWrapper() {
         </div>
       </AuthProvider>
     </ThemeProvider>
-
   );
 }
+
 function App() {
-
   const location = useLocation();
-
   const shouldShowNavbar = location.pathname !== "/auth";
 
-  
   return (
     <>
       {shouldShowNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/problems" element={<Problems />} />
-        <Route path="/add-problem" element={<AddProblem />} />
-        <Route path="/problems/:id" element={<ProblemDetail />} />
-        <Route path="/edit-problem/:id" element={<EditProblem />} />
+        
+        {/* Protected Routes - require authentication and email verification */}
+        <Route 
+          path="/problems" 
+          element={
+            <ProtectedRoute requireEmailVerification={false}>
+              <Problems />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/add-problem" 
+          element={
+            <ProtectedRoute>
+              <AddProblem />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/problems/:id" 
+          element={
+            <ProtectedRoute requireEmailVerification={false}>
+              <ProblemDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/edit-problem/:id" 
+          element={
+            <ProtectedRoute>
+              <EditProblem />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute requireEmailVerification={false}>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </>
   );
