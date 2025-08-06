@@ -4,10 +4,27 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <!-- <title>Vite + React</title> -->
+    <title>LeetSpace - Practice Coding Problems</title>
+    <!-- Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Google Sign-In Configuration -->
+    <!-- <script>
+      window.addEventListener('load', () => {
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            callback: (response) => {
+              // This will be handled by the component
+              console.log('Google credential received');
+            }
+          });
+        }
+      });
+    </script> -->
   </body>
 </html>

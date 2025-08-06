@@ -28,14 +28,18 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     is_active: bool = True
+    email_verified: bool = False
+    auth_provider: str = "email"  # "email", "google", etc.
+    google_id: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
+    password: Optional[str] = Field(None, min_length=8, max_length=128)  # Optional for OAuth users
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
+    email_verified: Optional[bool] = None
 
 class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -43,14 +47,28 @@ class UserProfileUpdate(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=8, max_length=128)
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+class EmailVerificationRequest(BaseModel):
+    token: str
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+class PasswordStrengthRequest(BaseModel):
+    password: str
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+
+class GoogleAuthRequest(BaseModel):
+    credential: str  # Google JWT token
 
 class UserInDB(UserBase):
     model_config = ConfigDict(
@@ -61,7 +79,7 @@ class UserInDB(UserBase):
     
     # id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
-    hashed_password: str
+    hashed_password: Optional[str] = None  # Optional for OAuth users
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

@@ -1,5 +1,5 @@
 // API service for backend communication
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 class ApiService {
   constructor() {
@@ -247,6 +247,35 @@ class ApiService {
         token,
         new_password: newPassword
       }),
+    });
+  }
+
+   // Google OAuth
+   async googleAuth(credential) {
+    const response = await this.request('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
+    
+    if (response.access_token) {
+      this.setToken(response.access_token, response.refresh_token);
+    }
+    
+    return response;
+  }
+
+  // Email verification
+  async verifyEmail(token) {
+    return this.request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async resendVerification(email) {
+    return this.request('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
     });
   }
 

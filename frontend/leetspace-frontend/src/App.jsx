@@ -9,6 +9,7 @@ import EditProblem from "./pages/EditProblem";
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/lib/useAuth";
@@ -43,7 +44,7 @@ function App() {
   const location = useLocation();
 
   // const shouldShowNavbar = location.pathname !== "/auth";
-  const shouldShowNavbar = !location.pathname.match(/^\/(auth|forgot-password|reset-password)$/);
+  const shouldShowNavbar = !location.pathname.match(/^\/(auth|forgot-password|reset-password|verify-email)$/);
 
   
   return (
@@ -55,6 +56,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         {/* <Route path="/problems" element={<Problems />} />
         <Route path="/add-problem" element={<AddProblem />} />
         <Route path="/problems/:id" element={<ProblemDetail />} />

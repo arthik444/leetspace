@@ -10,6 +10,7 @@ from db.user_operations import ensure_user_indexes
 from db.token_blacklist import ensure_blacklist_indexes
 from db.refresh_tokens import ensure_refresh_token_indexes
 from db.password_reset import ensure_password_reset_indexes
+from db.email_verification import ensure_verification_indexes
 from routes import problems, analytics, auth
 from contextlib import asynccontextmanager
 
@@ -21,6 +22,7 @@ async def lifespan(app: FastAPI):
         await ensure_blacklist_indexes()
         await ensure_refresh_token_indexes()
         await ensure_password_reset_indexes()
+        await ensure_verification_indexes()
         print("✅ MongoDB user indexes created")
         print("✅ MongoDB blacklist indexes created")
         print("✅ MongoDB refresh token indexes created")

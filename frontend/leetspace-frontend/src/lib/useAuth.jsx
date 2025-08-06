@@ -160,6 +160,45 @@ export function AuthProvider({ children }) {
       throw error;
     }
   };
+    // Google OAuth login
+    const googleLogin = async (credential) => {
+      try {
+        setLoading(true);
+        const response = await apiService.googleAuth(credential);
+        
+        // Get user data after successful login
+        const userData = await apiService.getCurrentUser();
+        setUser(userData);
+        
+        return { success: true, user: userData };
+      } catch (error) {
+        console.error('Google login failed:', error);
+        throw new Error(error.message || 'Google login failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    // Email verification
+    const verifyEmail = async (token) => {
+      try {
+        return await apiService.verifyEmail(token);
+      } catch (error) {
+        console.error('Email verification failed:', error);
+        throw error;
+      }
+    };
+  
+    // Resend email verification
+    const resendVerification = async (email) => {
+      try {
+        return await apiService.resendVerification(email);
+      } catch (error) {
+        console.error('Resend verification failed:', error);
+        throw error;
+      }
+    };
+  
   // Auth context value
   const value = {
     user,
@@ -173,6 +212,9 @@ export function AuthProvider({ children }) {
     deleteAccount,
     forgotPassword,
     resetPassword,
+    googleLogin,
+    verifyEmail,
+    resendVerification,
     isAuthenticated: !!user,
   };
 
