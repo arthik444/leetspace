@@ -30,11 +30,16 @@ setPersistence(auth, browserLocalPersistence)
   });
 
 // Connect to auth emulator in development (optional)
-if (import.meta.env.MODE === 'development' && !auth._delegate._config.emulator) {
+if (import.meta.env.MODE === 'development') {
   try {
-    connectAuthEmulator(auth, "http://localhost:9099");
+    // Only try to connect to emulator if we haven't already connected
+    // Check if we're running on localhost and the auth URL doesn't include the emulator
+    if (window.location.hostname === 'localhost' && !auth.config?.emulator) {
+      connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+      console.log("Connected to Firebase Auth emulator");
+    }
   } catch (error) {
-    // Emulator might already be connected or not available
+    // Emulator might already be connected, not available, or we're not in the right environment
     console.log("Auth emulator connection skipped:", error.message);
   }
 }
