@@ -7,7 +7,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { validateEmail, validatePassword } from "@/lib/authService";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export function LoginForm({ className, ...props }) {
@@ -17,6 +18,7 @@ export function LoginForm({ className, ...props }) {
     displayName: "",
   });
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -28,8 +30,7 @@ export function LoginForm({ className, ...props }) {
     signIn, 
     signUp, 
     signInWithGoogle, 
-    sendEmailVerification, 
-    sendPasswordReset 
+    sendEmailVerification
   } = useAuth();
 
   // Check for successful email verification in URL params
@@ -132,23 +133,6 @@ export function LoginForm({ className, ...props }) {
     }
   };
 
-  const handlePasswordReset = async () => {
-    if (!formData.email) {
-      toast.error("Please enter your email address first");
-      return;
-    }
-
-    if (!validateEmail(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    const result = await sendPasswordReset(formData.email);
-    if (result.success) {
-      toast.success("Password reset email sent!");
-    }
-  };
-
   const handleResendVerification = async () => {
     if (unverifiedUser) {
       await sendEmailVerification();
@@ -159,21 +143,36 @@ export function LoginForm({ className, ...props }) {
     setIsLogin(!isLogin);
     setValidationErrors({});
     setUnverifiedUser(null);
+    setShowForgotPassword(false);
   };
+
+  const handleForgotPasswordClick = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setValidationErrors({});
+  };
+
+  // Show forgot password form
+  if (showForgotPassword) {
+    return <ForgotPasswordForm onBack={handleBackToLogin} className={className} {...props} />;
+  }
 
   // Show email verification prompt if user needs verification
   if (unverifiedUser) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/20">
             <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Check Your Email</h2>
-            <p className="text-muted-foreground text-sm mt-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Check Your Email</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
               We sent a verification link to{" "}
-              <span className="font-medium">{unverifiedUser.email}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{unverifiedUser.email}</span>
             </p>
           </div>
         </div>
@@ -201,10 +200,10 @@ export function LoginForm({ className, ...props }) {
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {isLogin ? "Welcome back" : "Create your account"}
         </h1>
-        <p className="text-muted-foreground text-sm text-balance">
+        <p className="text-gray-600 dark:text-gray-400 text-sm text-balance">
           {isLogin
             ? "Enter your credentials to access your account"
             : "Sign up to get started with LeetSpace"}
@@ -215,7 +214,7 @@ export function LoginForm({ className, ...props }) {
         {/* Display Name Field (Sign Up Only) */}
         {!isLogin && (
           <div className="grid gap-3">
-            <Label htmlFor="displayName">Display Name</Label>
+            <Label htmlFor="displayName" className="text-gray-700 dark:text-gray-300">Display Name</Label>
             <Input 
               id="displayName" 
               type="text" 
@@ -225,14 +224,14 @@ export function LoginForm({ className, ...props }) {
               className={validationErrors.displayName ? "border-red-500" : ""}
             />
             {validationErrors.displayName && (
-              <p className="text-sm text-red-500">{validationErrors.displayName}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.displayName}</p>
             )}
           </div>
         )}
 
         {/* Email Field */}
         <div className="grid gap-3">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
           <Input 
             id="email" 
             type="email" 
@@ -242,19 +241,19 @@ export function LoginForm({ className, ...props }) {
             className={validationErrors.email ? "border-red-500" : ""}
           />
           {validationErrors.email && (
-            <p className="text-sm text-red-500">{validationErrors.email}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.email}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div className="grid gap-3">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
             {isLogin && (
               <button
                 type="button"
-                onClick={handlePasswordReset}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
+                onClick={handleForgotPasswordClick}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Forgot password?
               </button>
@@ -272,14 +271,14 @@ export function LoginForm({ className, ...props }) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
 
           {validationErrors.password && (
-            <p className="text-sm text-red-500">{validationErrors.password}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.password}</p>
           )}
 
           {/* Password Strength Indicator (Sign Up Only) */}
@@ -294,7 +293,7 @@ export function LoginForm({ className, ...props }) {
         {/* Submit Button */}
         <Button 
           type="submit" 
-          className="w-full" 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
           disabled={loading}
         >
           {loading ? (
@@ -309,8 +308,8 @@ export function LoginForm({ className, ...props }) {
 
         {/* Divider */}
         <div className="relative text-center text-sm">
-          <div className="absolute inset-0 top-1/2 border-t border-border z-0" />
-          <span className="relative z-10 bg-background px-2 text-muted-foreground">
+          <div className="absolute inset-0 top-1/2 border-t border-gray-200 dark:border-gray-700 z-0" />
+          <span className="relative z-10 bg-white dark:bg-gray-800 px-2 text-gray-600 dark:text-gray-400">
             Or continue with
           </span>
         </div>
@@ -319,7 +318,7 @@ export function LoginForm({ className, ...props }) {
         <Button 
           type="button"
           variant="outline" 
-          className="w-full gap-2" 
+          className="w-full gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800" 
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
@@ -330,11 +329,13 @@ export function LoginForm({ className, ...props }) {
 
       {/* Toggle Login/Sign Up */}
       <div className="text-center text-sm">
-        {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+        <span className="text-gray-600 dark:text-gray-400">
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+        </span>
         <button
           type="button"
           onClick={toggleMode}
-          className="text-blue-600 hover:text-blue-800 underline font-medium"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium"
         >
           {isLogin ? "Sign up" : "Sign in"}
         </button>

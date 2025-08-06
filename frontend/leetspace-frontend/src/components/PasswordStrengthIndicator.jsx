@@ -22,6 +22,12 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
     return "Very Strong";
   };
 
+  const getStrengthTextColor = (score) => {
+    if (score <= 2) return "text-red-600 dark:text-red-400";
+    if (score <= 3) return "text-yellow-600 dark:text-yellow-400";
+    return "text-green-600 dark:text-green-400";
+  };
+
   const requirements = [
     { 
       key: 'minLength', 
@@ -51,18 +57,14 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
       {/* Strength Bar */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Password Strength
           </span>
-          <span className={`text-sm font-medium ${
-            validation.score <= 2 ? 'text-red-600' : 
-            validation.score <= 3 ? 'text-yellow-600' : 
-            'text-green-600'
-          }`}>
+          <span className={`text-sm font-medium ${getStrengthTextColor(validation.score)}`}>
             {getStrengthText(validation.score)}
           </span>
         </div>
@@ -71,10 +73,10 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
           {[1, 2, 3, 4, 5].map((level) => (
             <div
               key={level}
-              className={`h-2 flex-1 rounded-full ${
+              className={`h-2 flex-1 rounded-full transition-colors ${
                 level <= validation.score 
                   ? getStrengthColor(validation.score)
-                  : 'bg-gray-200 dark:bg-gray-700'
+                  : 'bg-gray-200 dark:bg-gray-600'
               }`}
             />
           ))}
@@ -83,17 +85,17 @@ const PasswordStrengthIndicator = ({ password, showRequirements = true }) => {
 
       {/* Requirements List */}
       {showRequirements && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Password Requirements:
           </span>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {requirements.map((req) => (
               <div key={req.key} className="flex items-center space-x-2">
                 {req.met ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-green-500 dark:text-green-400 flex-shrink-0" />
                 ) : (
-                  <X className="h-4 w-4 text-gray-400" />
+                  <X className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                 )}
                 <span className={`text-sm ${
                   req.met 
