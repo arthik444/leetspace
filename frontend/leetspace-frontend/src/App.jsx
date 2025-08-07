@@ -7,6 +7,7 @@ import AddProblem from './pages/AddProblem';
 import ProblemDetail from './pages/problemDetail';
 import EditProblem from "./pages/EditProblem";
 import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -89,6 +90,14 @@ function App() {
           element={
             <ProtectedRoute requireEmailVerification={false}>
               <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute requireEmailVerification={false}>
+              <Dashboard />
             </ProtectedRoute>
           } 
         />

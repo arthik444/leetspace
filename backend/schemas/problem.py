@@ -22,7 +22,7 @@ class ProblemBase(BaseModel):
 
 
 class ProblemCreate(ProblemBase):
-    user_id: str = Field(..., example="abc123")
+    user_id: Optional[str] = Field(None, example="abc123")  # Optional since handled by auth
 
 
 class ProblemUpdate(BaseModel):

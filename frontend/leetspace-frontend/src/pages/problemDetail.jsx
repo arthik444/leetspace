@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { problemsAPI } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit3, Trash2,ExternalLink } from "lucide-react";
@@ -52,12 +52,17 @@ export default function ProblemDetail() {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const res = await axios.get(`/api/problems/${id}`, {
-          baseURL: "http://localhost:8000",
-        });
+        const res = await problemsAPI.getProblem(id);
         setProblem(res.data);
       } catch (err) {
         console.error("Failed to fetch problem", err);
+        if (err.response?.status === 401) {
+          toast.error("Authentication failed. Please sign in again.");
+        } else if (err.response?.status === 404) {
+          toast.error("Problem not found.");
+        } else {
+          toast.error("Failed to load problem details.");
+        }
       } finally {
         setLoading(false);
       }
@@ -73,10 +78,8 @@ export default function ProblemDetail() {
 
   const confirmDelete = async (problemId) => {
     try {
-      await axios.delete(`/api/problems/${problemId}`, {
-        baseURL: "http://localhost:8000",
-      });
-      toast.success("Problem deleted succesfully", {
+      await problemsAPI.deleteProblem(problemId);
+      toast.success("Problem deleted successfully", {
         style: {
           backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
           color: theme === 'dark' ? '#ffffff' : '#000000',
@@ -85,14 +88,25 @@ export default function ProblemDetail() {
       navigate("/problems");
     } catch (error) {
       console.error("Error deleting problem:", error);
-      toast.error("Failed to delete problem. Please try again.", {
-        style: {
-          backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
-          color: theme === 'dark' ? '#ffffff' : '#000000',
-          border: '1px solid #e53e3e',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        },
-      });
+      if (error.response?.status === 401) {
+        toast.error("Authentication failed. Please sign in again.", {
+          style: {
+            backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+            color: theme === 'dark' ? '#ffffff' : '#000000',
+            border: '1px solid #e53e3e',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+          },
+        });
+      } else {
+        toast.error("Failed to delete problem. Please try again.", {
+          style: {
+            backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+            color: theme === 'dark' ? '#ffffff' : '#000000',
+            border: '1px solid #e53e3e',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+          },
+        });
+      }
     }
   };
 
