@@ -19,7 +19,7 @@ function AppWrapper() {
   return (
     <ThemeProvider>
       <AuthProvider>
-      <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
+      <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-blue-800 dark:via-blue-900 dark:to-indigo-900 transition-colors">
           <Router>
             <App />
           </Router>
