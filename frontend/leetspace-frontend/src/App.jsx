@@ -53,7 +53,7 @@ function App() {
         <Route 
           path="/" 
           element={
-            <ProtectedRoute requireEmailVerification={false}>
+            <ProtectedRoute>
               <Home />
             </ProtectedRoute>
           } 
@@ -63,7 +63,7 @@ function App() {
         <Route 
           path="/problems" 
           element={
-            <ProtectedRoute requireEmailVerification={false}>
+            <ProtectedRoute>
               <Problems />
             </ProtectedRoute>
           } 
@@ -79,7 +79,7 @@ function App() {
         <Route 
           path="/problems/:id" 
           element={
-            <ProtectedRoute requireEmailVerification={false}>
+            <ProtectedRoute>
               <ProblemDetail />
             </ProtectedRoute>
           } 
@@ -95,7 +95,7 @@ function App() {
         <Route 
           path="/profile" 
           element={
-            <ProtectedRoute requireEmailVerification={false}>
+            <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
           } 
@@ -103,7 +103,7 @@ function App() {
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute requireEmailVerification={false}>
+            <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } 

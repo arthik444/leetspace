@@ -23,11 +23,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     # Check if email is verified (disabled for development)
     # Uncomment the lines below if you want to require email verification
-    # if not user_info.get("email_verified", False):
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Email not verified. Please verify your email address.",
-    #     )
+    if not user_info.get("email_verified", False):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email not verified. Please verify your email address.",
+        )
     
     return user_info
 
