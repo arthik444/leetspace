@@ -139,17 +139,43 @@ import {
     // Send password reset email
     static async sendPasswordReset(email) {
       try {
+        // First attempt with in-app handling and custom redirect URL
         await sendPasswordResetEmail(auth, email, {
           url: window.location.origin + '/auth',
           handleCodeInApp: true
         });
-  
+
         return {
           success: true,
           message: 'Password reset email sent successfully!'
         };
       } catch (error) {
-        console.error('Password reset error:', error);
+        console.error('Password reset error (with continue URL):', error);
+
+        // Known continue URL issues: retry without custom ActionCodeSettings
+        const continueUriErrors = new Set([
+          'auth/invalid-continue-uri',
+          'auth/unauthorized-continue-uri',
+          'auth/missing-continue-uri',
+        ]);
+
+        if (continueUriErrors.has(error.code)) {
+          try {
+            await sendPasswordResetEmail(auth, email);
+            return {
+              success: true,
+              message: 'Password reset email sent successfully!'
+            };
+          } catch (fallbackError) {
+            console.error('Password reset fallback error (no continue URL):', fallbackError);
+            return {
+              success: false,
+              error: getAuthErrorMessage(fallbackError.code),
+              code: fallbackError.code
+            };
+          }
+        }
+
         return {
           success: false,
           error: getAuthErrorMessage(error.code),

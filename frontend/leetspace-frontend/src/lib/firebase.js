@@ -57,6 +57,10 @@ export const AUTH_ERROR_MESSAGES = {
   'auth/popup-blocked': 'Sign-in popup was blocked by your browser.',
   'auth/cancelled-popup-request': 'Only one popup request is allowed at a time.',
   'auth/account-exists-with-different-credential': 'An account already exists with the same email but different sign-in credentials.',
+  // Continue URL / action code errors
+  'auth/invalid-continue-uri': 'The return URL is invalid. Please contact support.',
+  'auth/unauthorized-continue-uri': 'The return URL is not allowed. Please contact support.',
+  'auth/missing-continue-uri': 'Missing return URL for the operation. Please try again later.'
 };
 
 // Helper function to get user-friendly error messages
