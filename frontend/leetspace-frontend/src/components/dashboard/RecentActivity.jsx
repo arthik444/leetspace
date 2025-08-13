@@ -42,17 +42,17 @@ export function RecentActivity({ activities = [], className = "" }) {
   return (
     <Card className={`bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 ${className}`}>
       <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            Recent Activity
-          </CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
+          <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          Recent Activity
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {activities.map((activity) => (
             <div 
               key={activity.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer"
               onClick={() => handleProblemClick(activity.id)}
             >
               <div className="flex-1 min-w-0">

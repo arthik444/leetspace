@@ -154,9 +154,9 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              if (error) setError(""); // Clear error when user types
+              if (error) setError("");
             }}
-            className={error ? "border-red-500 focus:border-red-500" : ""}
+            className={cn("bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400", error ? "border-red-500 focus:border-red-500" : "")}
             disabled={loading}
           />
           {error && (

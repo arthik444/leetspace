@@ -235,20 +235,26 @@ import {
     }
   
     // Update password
-    static async updatePassword(currentPassword, newPassword) {
+        static async updatePassword(currentPassword, newPassword) {
       try {
         const user = auth.currentUser;
         if (!user) {
           throw new Error('No user found');
         }
-  
+        if (currentPassword === newPassword) {
+          return {
+            success: false,
+            error: 'New password must be different from current password',
+            code: 'auth/same-password'
+          };
+        }
         // Re-authenticate user first
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
-  
+    
         // Update password
         await updatePassword(user, newPassword);
-  
+    
         return {
           success: true,
           message: 'Password updated successfully!'

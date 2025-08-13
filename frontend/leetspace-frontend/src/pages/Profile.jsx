@@ -110,6 +110,11 @@ export default function Profile() {
     setLoading(prev => ({ ...prev, password: true }));
 
     try {
+      if (passwordForm.currentPassword === passwordForm.newPassword) {
+        toast.error("New password must be different from current password");
+        setLoading(prev => ({ ...prev, password: false }));
+        return;
+      }
       const result = await updatePassword(
         passwordForm.currentPassword, 
         passwordForm.newPassword
@@ -177,8 +182,8 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
-        <div className="text-center bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center p-6">
+        <div className="text-center bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Please sign in to view your profile
           </h1>
@@ -188,7 +193,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -201,8 +206,8 @@ export default function Profile() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 mb-6">
+          <div className="border-b border-gray-200 dark:border-zinc-700">
             <nav className="flex space-x-8 px-6">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
@@ -235,16 +240,16 @@ export default function Profile() {
                   </h2>
                   
                   <form onSubmit={handleProfileUpdate} className="space-y-6">
-                    <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg">
                       <div className="flex-shrink-0">
                         {user.photoURL ? (
                           <img 
                             src={user.photoURL} 
                             alt="Profile" 
-                            className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-600 shadow-sm"
+                            className="w-20 h-20 rounded-full border-4 border-white dark:border-zinc-700 shadow-sm"
                           />
                         ) : (
-                          <div className="w-20 h-20 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-600 shadow-sm">
+                          <div className="w-20 h-20 bg-gray-300 dark:bg-zinc-700 rounded-full flex items-center justify-center border-4 border-white dark:border-zinc-700 shadow-sm">
                             <User className="w-8 h-8 text-gray-600 dark:text-gray-300" />
                           </div>
                         )}
@@ -282,7 +287,7 @@ export default function Profile() {
                             type="email"
                             value={user.email}
                             disabled
-                            className="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                            className="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400"
                           />
                           <div className="flex items-center gap-1">
                             {isEmailVerified ? (
@@ -356,7 +361,7 @@ export default function Profile() {
                       </div>
                     )}
                     {hasPasswordProvider && (
-                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
                         <div className="flex items-center gap-3">
                           <Key className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                           <span className="font-medium text-gray-900 dark:text-white">Email & Password</span>
