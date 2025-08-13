@@ -120,7 +120,7 @@ export function LoginForm({ className, ...props }) {
 
     try {
       if (isLogin) {
-        const result = await signIn(formData.email, formData.password);
+        const result = await signIn(formData.email.trim().toLowerCase(), formData.password);
         if (result.success) {
           const from = location.state?.from || "/";
           navigate(from, { replace: true });
@@ -129,14 +129,14 @@ export function LoginForm({ className, ...props }) {
         } else {
           applyResultErrorsToInputs(result.code, result.error);
         }
-      } else {
-                 const result = await signUp(formData.email, formData.password, formData.displayName);
-         if (result.success) {
-           setUnverifiedUser(result.user);
-           setFormData({ email: "", password: "", displayName: "", confirmPassword: "" });
-         } else {
-           applyResultErrorsToInputs(result.code, result.error);
-         }
+            } else {
+        const result = await signUp(formData.email.trim().toLowerCase(), formData.password, formData.displayName);
+        if (result.success) {
+          setUnverifiedUser(result.user);
+          setFormData({ email: "", password: "", displayName: "", confirmPassword: "" });
+        } else {
+          applyResultErrorsToInputs(result.code, result.error);
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
