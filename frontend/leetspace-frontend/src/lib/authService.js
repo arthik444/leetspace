@@ -80,11 +80,18 @@ import {
           message: 'Signed in successfully!'
         };
       } catch (error) {
-        // Refine error message based on linked providers
+        // Refine error message based on linked providers and existence
         try {
           const normalizedEmail = (email || '').trim().toLowerCase();
           const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
-          if (methods && methods.includes('google.com') && !methods.includes('password')) {
+          if (!methods || methods.length === 0) {
+            return {
+              success: false,
+              error: 'No account found for this email.',
+              code: 'auth/user-not-found'
+            };
+          }
+          if (methods.includes('google.com') && !methods.includes('password')) {
             return {
               success: false,
               error: 'This email is registered with Google. Use “Continue with Google”.',
