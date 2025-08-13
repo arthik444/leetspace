@@ -221,10 +221,10 @@ export function LoginForm({ className, ...props }) {
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           {isLogin ? "Welcome back" : "Create your account"}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm text-balance">
+        <p className="text-gray-600 text-sm text-balance">
           {isLogin
             ? "Enter your credentials to access your account"
             : "Sign up to get started with LeetSpace"}
@@ -234,7 +234,7 @@ export function LoginForm({ className, ...props }) {
       <div className="grid gap-6">
         {!isLogin && (
           <div className="grid gap-3">
-            <Label htmlFor="displayName" className="text-gray-700 dark:text-gray-300">Display Name</Label>
+            <Label htmlFor="displayName" className="text-gray-700">Display Name</Label>
             <Input
               id="displayName"
               type="text"
@@ -242,7 +242,7 @@ export function LoginForm({ className, ...props }) {
               value={formData.displayName}
               onChange={(e) => handleInputChange("displayName", e.target.value)}
               className={cn(
-                "bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400",
+                "bg-white text-black",
                 validationErrors.displayName && "border-red-500"
               )}
             />
@@ -253,7 +253,7 @@ export function LoginForm({ className, ...props }) {
         )}
 
         <div className="grid gap-3">
-          <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+          <Label htmlFor="email" className="text-gray-700">Email</Label>
           <Input
             id="email"
             type="email"
@@ -261,7 +261,7 @@ export function LoginForm({ className, ...props }) {
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
             className={cn(
-              "bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400",
+              "bg-white text-black",
               validationErrors.email && "border-red-500"
             )}
           />
@@ -272,7 +272,7 @@ export function LoginForm({ className, ...props }) {
 
                  <div className="grid gap-3">
            <div className="flex items-center justify-between">
-             <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+             <Label htmlFor="password" className="text-gray-700">Password</Label>
              {isLogin && (
                <button
                  type="button"
@@ -289,10 +289,10 @@ export function LoginForm({ className, ...props }) {
                type={showPassword ? "text" : "password"}
                value={formData.password}
                onChange={(e) => handleInputChange("password", e.target.value)}
-               className={cn(
-                 "pr-10 bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400",
-                 validationErrors.password && "border-red-500"
-               )}
+                             className={cn(
+                "pr-10 bg-white text-black",
+                validationErrors.password && "border-red-500"
+              )}
              />
              <button
                type="button"
@@ -312,17 +312,17 @@ export function LoginForm({ className, ...props }) {
 
          {!isLogin && (
            <div className="grid gap-3">
-             <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password</Label>
+             <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
              <div className="relative">
                <Input
                  id="confirmPassword"
                  type={showConfirmPassword ? "text" : "password"}
                  value={formData.confirmPassword}
                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                 className={cn(
-                   "pr-10 bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400",
-                   validationErrors.confirmPassword && "border-red-500"
-                 )}
+                                 className={cn(
+                  "pr-10 bg-white text-black",
+                  validationErrors.confirmPassword && "border-red-500"
+                )}
                />
                <button
                  type="button"
@@ -350,8 +350,8 @@ export function LoginForm({ className, ...props }) {
          </Button>
 
         <div className="relative text-center text-sm">
-          <div className="absolute inset-0 top-1/2 border-t border-gray-200 dark:border-gray-700 z-0" />
-          <span className="relative z-10 bg-white dark:bg-zinc-900 px-2 text-gray-600 dark:text-gray-400">
+          <div className="absolute inset-0 top-1/2 border-t border-gray-200 z-0" />
+          <span className="relative z-10 bg-white px-2 text-gray-600">
             Or continue with
           </span>
         </div>
@@ -359,7 +359,7 @@ export function LoginForm({ className, ...props }) {
         <Button
           type="button"
           variant="outline"
-          className="w-full gap-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-zinc-800"
+          className="w-full gap-2 border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >

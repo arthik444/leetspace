@@ -134,17 +134,17 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           Reset Your Password
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm text-balance">
+        <p className="text-gray-600 text-sm text-balance">
           Enter your email address and we'll send you a link to reset your password
         </p>
       </div>
 
       <div className="grid gap-6">
         <div className="grid gap-3">
-          <Label htmlFor="reset-email" className="text-gray-700 dark:text-gray-300">
+          <Label htmlFor="reset-email" className="text-gray-700">
             Email Address
           </Label>
           <Input 
@@ -156,7 +156,7 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
               setEmail(e.target.value);
               if (error) setError("");
             }}
-            className={cn("bg-white text-black dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-400", error ? "border-red-500 focus:border-red-500" : "")}
+            className={cn("bg-white text-black", error ? "border-red-500 focus:border-red-500" : "")}
             disabled={loading}
           />
           {error && (
@@ -187,7 +187,7 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
         <button
           type="button"
           onClick={handleBackToLogin}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium cursor-pointer"
+          className="text-sm text-blue-600 hover:text-blue-800 underline font-medium cursor-pointer"
         >
           <ArrowLeft className="h-3 w-3 inline mr-1" />
           Back to Sign In
