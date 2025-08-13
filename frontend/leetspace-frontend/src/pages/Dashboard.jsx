@@ -88,8 +88,8 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-            📊 Dashboard
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Hi {user?.displayName?.trim() || (user?.email ? user.email.split('@')[0] : 'there')} 👋
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Your LeetSpace learning analytics and insights
