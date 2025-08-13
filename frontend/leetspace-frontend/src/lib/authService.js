@@ -61,27 +61,10 @@ import {
     static async signInWithEmail(email, password) {
       try {
         const normalizedEmail = (email || '').trim().toLowerCase();
-        // Pre-check if the email has any sign-in methods (i.e., account exists)
-        const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
-        if (!methods || methods.length === 0) {
-          return {
-            success: false,
-            error: 'No account found for this email.',
-            code: 'auth/user-not-found'
-          };
-        }
-        // If the account exists with Google provider but not password
-        if (methods.includes('google.com') && !methods.includes('password')) {
-          return {
-            success: false,
-            error: 'This email is registered with Google. Use “Continue with Google”.',
-            code: 'auth/account-exists-with-different-credential'
-          };
-        }
+        // Try direct sign-in first to avoid false negatives from provider pre-checks
         const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
         const user = userCredential.user;
-  
-        // Check if email is verified
+
         if (!user.emailVerified) {
           return {
             success: false,
@@ -90,14 +73,27 @@ import {
             user: user
           };
         }
-  
+
         return {
           success: true,
           user: user,
           message: 'Signed in successfully!'
         };
       } catch (error) {
-        console.error('Sign in error:', error);
+        // Refine error message based on linked providers
+        try {
+          const normalizedEmail = (email || '').trim().toLowerCase();
+          const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
+          if (methods && methods.includes('google.com') && !methods.includes('password')) {
+            return {
+              success: false,
+              error: 'This email is registered with Google. Use “Continue with Google”.',
+              code: 'auth/account-exists-with-different-credential'
+            };
+          }
+        } catch (_) {
+          // ignore provider lookup failures; fall back to base error
+        }
         return {
           success: false,
           error: getAuthErrorMessage(error.code),
