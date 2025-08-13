@@ -43,7 +43,7 @@ if (import.meta.env.MODE === 'development') {
 
 // Auth error code mappings for better user experience
 export const AUTH_ERROR_MESSAGES = {
-  'auth/user-not-found': 'No account found with this email address.',
+  'auth/user-not-found': "you dont have an account on this email",
   'auth/wrong-password': 'Incorrect password. Please try again.',
   'auth/invalid-email': 'Please enter a valid email address.',
   'auth/email-already-in-use': 'An account with this email already exists.',

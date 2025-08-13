@@ -12,7 +12,8 @@ import {
     EmailAuthProvider,
     GoogleAuthProvider,
     deleteUser,
-    reload
+    reload,
+    fetchSignInMethodsForEmail
   } from "firebase/auth";
   import { auth, getAuthErrorMessage } from "./firebase";
   
@@ -59,6 +60,16 @@ import {
     // Sign in with email and password
     static async signInWithEmail(email, password) {
       try {
+        // Pre-check if the email has any sign-in methods (i.e., account exists)
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        if (!methods || methods.length === 0) {
+          return {
+            success: false,
+            error: 'you dont have an account on this email',
+            code: 'auth/user-not-found'
+          };
+        }
+  
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
   
