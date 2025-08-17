@@ -17,6 +17,21 @@
     <script type="application/ld+json">
       {"@context":"https://schema.org","@type":"SoftwareApplication","name":"LeetSpace","applicationCategory":"EducationalApplication","operatingSystem":"Web","description":"Private coding practice journal with versions, insights, and focused review."}
     </script>
+    <script>
+      (function() {
+        try {
+          var root = document.documentElement;
+          var path = window.location.pathname;
+          var stored = localStorage.getItem('theme');
+          root.classList.remove('light','dark');
+          if (path === '/auth') {
+            root.classList.add('light');
+          } else {
+            root.classList.add(stored === 'dark' ? 'dark' : 'light');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

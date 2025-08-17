@@ -1,36 +1,18 @@
 import { GalleryVerticalEnd } from "lucide-react"
 import { LoginForm } from "../components/login-form";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 export default function Auth() {
-
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     const root = document.documentElement;
-    const hadDark = root.classList.contains("dark");
-    // Force light mode while on auth page
     root.classList.remove("dark");
     root.classList.add("light");
-
     return () => {
+      // Do not flip back here; ThemeProvider + early script handle global theme
       root.classList.remove("light");
-      if (hadDark) root.classList.add("dark");
-      else root.classList.add("light");
     };
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Fake login logic
-    if (email && password) {
-      // You'd replace this with real API auth
-      navigate("/home");
-    }
-  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">

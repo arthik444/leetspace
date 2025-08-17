@@ -80,17 +80,19 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
               Check Your Email
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-              We've sent a password reset link to{" "}
+              We've sent a secure link to reset your password at
+              {" "}
               <span className="font-medium text-gray-900 dark:text-white">
                 {email}
               </span>
+              . The link opens a page where you can set and confirm a new password.
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>Didn't receive the email? Check your spam folder or</p>
+            <p>Didn't receive the email? Check your spam/junk folder or resend below.</p>
           </div>
           
           <Button 
@@ -124,7 +126,7 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
 
         <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
           <p>
-            The password reset link will expire in 1 hour for security reasons.
+            The password reset link will expire shortly for security reasons.
           </p>
         </div>
       </div>

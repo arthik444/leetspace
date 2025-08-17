@@ -115,6 +115,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const verifyResetCode = useCallback(async (oobCode) => {
+    return AuthService.verifyPasswordResetCode(oobCode);
+  }, []);
+
+  const confirmPasswordReset = useCallback(async (oobCode, newPassword) => {
+    return AuthService.confirmPasswordReset(oobCode, newPassword);
+  }, []);
+
   const signOut = useCallback(async () => {
     setLoading(true);
     try {
@@ -213,6 +221,8 @@ export const AuthProvider = ({ children }) => {
       updateProfile,
       deleteAccount,
       reloadUser,
+      verifyResetCode,
+      confirmPasswordReset,
     };
 
   return (

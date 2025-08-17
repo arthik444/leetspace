@@ -13,7 +13,9 @@ import {
     GoogleAuthProvider,
     deleteUser,
     reload,
-    fetchSignInMethodsForEmail
+    fetchSignInMethodsForEmail,
+    verifyPasswordResetCode,
+    confirmPasswordReset
   } from "firebase/auth";
   import { auth, getAuthErrorMessage } from "./firebase";
   
@@ -180,7 +182,7 @@ import {
     static async sendPasswordReset(email) {
       try {
         await sendPasswordResetEmail(auth, email, {
-          url: window.location.origin + '/auth',
+          url: window.location.origin + '/reset-password',
           handleCodeInApp: true
         });
   
@@ -219,6 +221,28 @@ import {
           error: getAuthErrorMessage(error.code),
           code: error.code
         };
+      }
+    }
+  
+    // Verify password reset code and get email
+    static async verifyPasswordResetCode(oobCode) {
+      try {
+        const email = await verifyPasswordResetCode(auth, oobCode);
+        return { success: true, email };
+      } catch (error) {
+        console.error('verifyPasswordResetCode error:', error);
+        return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
+      }
+    }
+  
+    // Confirm password reset with new password
+    static async confirmPasswordReset(oobCode, newPassword) {
+      try {
+        await confirmPasswordReset(auth, oobCode, newPassword);
+        return { success: true };
+      } catch (error) {
+        console.error('confirmPasswordReset error:', error);
+        return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
       }
     }
   
