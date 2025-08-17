@@ -567,7 +567,10 @@ export function DataTable({ data, columns,onDataChange }) {
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 px-4 py-2"
+                  className={cn(
+                    "text-xs font-medium uppercase text-gray-500 dark:text-gray-400 px-4 py-2",
+                    header.column.columnDef.meta?.headerClass
+                  )}
                 >
                   {header.isPlaceholder
                     ? null
