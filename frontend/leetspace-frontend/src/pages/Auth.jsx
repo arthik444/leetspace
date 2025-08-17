@@ -8,8 +8,9 @@ export default function Auth() {
     root.classList.remove("dark");
     root.classList.add("light");
     return () => {
-      // Do not flip back here; ThemeProvider + early script handle global theme
       root.classList.remove("light");
+      const stored = typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light';
+      root.classList.add(stored === 'dark' ? 'dark' : 'light');
     };
   }, []);
 
