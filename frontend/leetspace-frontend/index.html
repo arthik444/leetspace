@@ -21,9 +21,14 @@
       (function() {
         try {
           var root = document.documentElement;
+          var path = window.location.pathname;
           var stored = localStorage.getItem('theme');
           root.classList.remove('light','dark');
-          root.classList.add(stored === 'dark' ? 'dark' : 'light');
+          if (path === '/auth') {
+            root.classList.add('light');
+          } else {
+            root.classList.add(stored === 'dark' ? 'dark' : 'light');
+          }
         } catch (e) {}
       })();
     </script>
