@@ -5,13 +5,9 @@ export default function Auth() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("dark");
-    root.classList.add("light");
-    return () => {
-      root.classList.remove("light");
-      const stored = typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light';
-      root.classList.add(stored === 'dark' ? 'dark' : 'light');
-    };
+    const stored = typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light';
+    root.classList.remove("light", "dark");
+    root.classList.add(stored === 'dark' ? 'dark' : 'light');
   }, []);
 
   return (

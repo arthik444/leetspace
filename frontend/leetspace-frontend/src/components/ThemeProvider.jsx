@@ -9,12 +9,9 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    const isAuth = typeof window !== 'undefined' && window.location.pathname === '/auth';
     root.classList.remove("light", "dark");
-    root.classList.add(isAuth ? "light" : theme);
-    if (!isAuth) {
-      localStorage.setItem("theme", theme);
-    }
+    root.classList.add(theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
