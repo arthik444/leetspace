@@ -431,14 +431,14 @@ function PatternTilesGraphic() {
       </defs>
       {/* connections */}
       {tiles.map((t) => (
-        <>
+        <g key={`g-${t.key}`}>
           {t.x + tileW + gap < width && (
-            <line key={`h-${t.key}`} x1={t.x + tileW} y1={t.y + tileH / 2} x2={t.x + tileW + gap} y2={t.y + tileH / 2} stroke="rgba(99,102,241,0.25)" strokeWidth="1" />
+            <line x1={t.x + tileW} y1={t.y + tileH / 2} x2={t.x + tileW + gap} y2={t.y + tileH / 2} stroke="rgba(99,102,241,0.25)" strokeWidth="1" />
           )}
           {t.y + tileH + gap < height && (
-            <line key={`v-${t.key}`} x1={t.x + tileW / 2} y1={t.y + tileH} x2={t.x + tileW / 2} y2={t.y + tileH + gap} stroke="rgba(34,211,238,0.25)" strokeWidth="1" />
+            <line x1={t.x + tileW / 2} y1={t.y + tileH} x2={t.x + tileW / 2} y2={t.y + tileH + gap} stroke="rgba(34,211,238,0.25)" strokeWidth="1" />
           )}
-        </>
+        </g>
       ))}
       {/* tiles */}
       {tiles.map((t) => (

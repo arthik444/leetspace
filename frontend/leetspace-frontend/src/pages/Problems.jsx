@@ -30,7 +30,6 @@ export default function Problems() {
         order: "desc",
       });
       setProblems(res.data.problems || res.data); // debug endpoint returns {count, problems}
-      console.log(res.data);
     } catch (error) {
       console.error("Error fetching problems:", error);
       toast.error("Failed to load problems. Please try again.");

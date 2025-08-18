@@ -15,11 +15,6 @@ const ProtectedRoute = ({
   const location = useLocation();
   const [showEmailVerificationPrompt, setShowEmailVerificationPrompt] = useState(false);
 
-  // In demo mode, bypass auth entirely
-  if (isDemo) {
-    return fallback || children;
-  }
-
   useEffect(() => {
     // Show email verification prompt if user is signed in but email is not verified
     if (user && requireEmailVerification && !isEmailVerified && initialized) {
@@ -28,6 +23,11 @@ const ProtectedRoute = ({
       setShowEmailVerificationPrompt(false);
     }
   }, [user, isEmailVerified, requireEmailVerification, initialized]);
+
+  // In demo mode, bypass auth entirely (after hooks to preserve order)
+  if (isDemo) {
+    return fallback || children;
+  }
 
   // Show loading spinner while auth is initializing
   if (loading || !initialized) {
