@@ -126,19 +126,19 @@ You used to grind problems and scatter notes across tabs and docs. Today’s mis
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8 text-black dark:text-white bg-white dark:bg-zinc-900 min-h-screen">
-      <div className="space-y-1">
-        <div className="flex justify-between items-center">
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">{problem.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{problem.title}</h1>
             <a href="/oops" title="Demo link" className="text-muted-foreground hover:text-blue-600">
               <ExternalLink className="w-5 h-5" />
             </a>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="border border-indigo-300 bg-white/90 text-indigo-700 hover:bg-indigo-50/80 dark:bg-zinc-900/70 dark:text-indigo-200 dark:hover:bg-zinc-800/70">
+          <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+            <Button asChild variant="outline" className="w-full sm:w-auto border border-indigo-300 bg-white/90 text-indigo-700 hover:bg-indigo-50/80 dark:bg-zinc-900/70 dark:text-indigo-200 dark:hover:bg-zinc-800/70">
               <Link to="/" className="cursor-pointer">Back</Link>
             </Button>
-                          <Button asChild className="shadow-sm border border-indigo-300">
+            <Button asChild className="w-full sm:w-auto shadow-sm border border-indigo-300">
               <Link to="/auth" className="cursor-pointer">Start your journal</Link>
             </Button>
           </div>

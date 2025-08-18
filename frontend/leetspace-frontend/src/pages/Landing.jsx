@@ -36,25 +36,25 @@ export default function Landing() {
               <p className="mt-4 md:mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-300">
                 Log what mattered. Track versions and mistakes. Review fast.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg">
+              <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+                <Button asChild size="lg" className="w-full sm:w-auto">
                   <Link to="/auth" className="cursor-pointer">
                     Start your journal
                     <ArrowRight className="ml-1" />
                   </Link>
                 </Button>
-                <Button asChild variant="ghost" size="lg" className="border border-indigo-300 bg-white/90 text-indigo-700 shadow-sm hover:bg-indigo-50/80 dark:bg-zinc-900/70 dark:text-indigo-200 dark:hover:bg-zinc-800/70">
+                <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto border border-indigo-300 bg-white/90 text-indigo-700 shadow-sm hover:bg-indigo-50/80 dark:bg-zinc-900/70 dark:text-indigo-200 dark:hover:bg-zinc-800/70">
                   <Link to="/sample/problem" className="cursor-pointer">View sample problem</Link>
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={() => { setDemo(true); navigate("/dashboard"); }}
-                  className="cursor-pointer"
+                  className="w-full sm:w-auto cursor-pointer"
                 >
                   Explore demo workspace
                 </Button>
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">Built for serious interview prep</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 sm:ml-1">Built for serious interview prep</span>
               </div>
             </div>
             <div className="relative">
