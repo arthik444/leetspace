@@ -27,6 +27,7 @@ class ProblemBase(BaseModel):
     solutions: Optional[List[Solution]] = Field(default=None, example=["class Solution: ..."])
     # mistakes: Optional[str] = Field(default=None, example="Missed duplicate cases.")
     retry_later: str = Field(default=None, example="Yes")
+    review_count: int = Field(default=0, description="Number of times this problem has been reviewed")
     spaced_repetition: Optional[SpacedRepetition] = Field(default=None, description="Spaced repetition data")
 
 
@@ -46,6 +47,7 @@ class ProblemUpdate(BaseModel):
     solutions: Optional[List[Solution]] = None
     # mistakes: Optional[str] = None
     retry_later: Optional[str] = None
+    review_count: Optional[int] = None
     spaced_repetition: Optional[SpacedRepetition] = None
 
 

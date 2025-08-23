@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Calendar, ExternalLink, Target, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, Target, CheckCircle, XCircle, UserCheck, SkipForward } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { skipRevision, calculateNextReview } from "@/lib/spacedRepetition";
+import { problemsAPI } from "@/lib/api";
+import { toast } from "sonner";
 
 export function TodaysRevision({ revision, className = "", onRevisionUpdate }) {
   const navigate = useNavigate();
-  const [skipped, setSkipped] = useState(false);
-  const [showQualitySelector, setShowQualitySelector] = useState(false);
-  const [selectedQuality, setSelectedQuality] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [actionCompleted, setActionCompleted] = useState(null);
 
   if (!revision) {
     return (
@@ -27,7 +27,7 @@ export function TodaysRevision({ revision, className = "", onRevisionUpdate }) {
               No problems to review today!
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              All caught up with your spaced repetition
+              All caught up with your retry queue
             </p>
           </div>
         </CardContent>
@@ -41,145 +41,131 @@ export function TodaysRevision({ revision, className = "", onRevisionUpdate }) {
     Hard: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
   };
 
-  const handleReview = () => {
+  const handleViewProblem = () => {
     navigate(`/problems/${revision.id}`);
   };
 
-  const handleSkip = () => {
-    // Apply spaced repetition skip logic
-    const updatedProblem = skipRevision(revision);
-    
-    // Update the problem in the parent component
-    if (onRevisionUpdate) {
-      onRevisionUpdate(updatedProblem);
-    }
-    
-    setSkipped(true);
-    
-    // Reset after showing feedback
+  const handleSkipToday = () => {
+    setActionCompleted({
+      type: "skip",
+      message: "Skipped for today",
+      description: "Problem stays in queue, no changes made"
+    });
+
     setTimeout(() => {
-      setSkipped(false);
+      setActionCompleted(null);
     }, 3000);
   };
 
-  const handleReviewComplete = (quality) => {
-    setSelectedQuality(quality);
-    setShowQualitySelector(false);
-    
-    // Apply spaced repetition logic
-    const updatedProblem = calculateNextReview(revision, quality);
-    
-    // Update the problem in the parent component
-    if (onRevisionUpdate) {
-      onRevisionUpdate(updatedProblem);
+  const handleCompleteReviewFuture = async () => {
+    setLoading(true);
+    try {
+      // Update review_count by incrementing it
+      const currentReviewCount = revision.review_count || 0;
+      const updateData = {
+        review_count: currentReviewCount + 1
+      };
+
+      await problemsAPI.updateProblem(revision.id, updateData);
+      
+      // Update local state
+      const updatedProblem = {
+        ...revision,
+        review_count: currentReviewCount + 1
+      };
+      
+      if (onRevisionUpdate) {
+        onRevisionUpdate(updatedProblem);
+      }
+
+      setActionCompleted({
+        type: "future",
+        message: "Review completed - Coming back in future",
+        description: `Review count updated to ${currentReviewCount + 1}. Problem stays in queue.`
+      });
+
+      toast.success("Review completed! Problem will be reviewed again in the future.");
+
+      setTimeout(() => {
+        setActionCompleted(null);
+      }, 3000);
+
+    } catch (error) {
+      console.error("Failed to update review count:", error);
+      toast.error("Failed to update review. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    // Show success message briefly
-    setTimeout(() => {
-      setSelectedQuality(null);
-    }, 2000);
   };
 
-  const getQualityDescription = (quality) => {
-    const descriptions = {
-      0: "Complete blackout",
-      1: "Incorrect response",
-      2: "Correct response with difficulty",
-      3: "Correct response with hesitation",
-      4: "Correct response with minor errors",
-      5: "Perfect response"
+  const handleCompleteReviewRemove = async () => {
+    setLoading(true);
+    try {
+      // Set retry_later = No to remove from queue
+      const updateData = {
+        retry_later: "No"
+      };
+
+      await problemsAPI.updateProblem(revision.id, updateData);
+      
+      // Update local state
+      const updatedProblem = {
+        ...revision,
+        retry_later: "No"
+      };
+      
+      if (onRevisionUpdate) {
+        onRevisionUpdate(updatedProblem);
+      }
+
+      setActionCompleted({
+        type: "remove",
+        message: "Review completed - Removed from retry queue",
+        description: "Problem has been permanently removed from retry queue."
+      });
+
+      toast.success("Review completed! Problem removed from retry queue.");
+
+      setTimeout(() => {
+        setActionCompleted(null);
+      }, 3000);
+
+    } catch (error) {
+      console.error("Failed to update retry_later:", error);
+      toast.error("Failed to remove from retry queue. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (actionCompleted) {
+    const icons = {
+      skip: SkipForward,
+      future: CheckCircle,
+      remove: UserCheck
     };
-    return descriptions[quality] || "Unknown";
-  };
+    
+    const colors = {
+      skip: "text-blue-600 dark:text-blue-400",
+      future: "text-green-600 dark:text-green-400", 
+      remove: "text-purple-600 dark:text-purple-400"
+    };
 
-  const getQualityColor = (quality) => {
-    if (quality >= 4) return "text-green-600 dark:text-green-400";
-    if (quality >= 3) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
-  };
+    const IconComponent = icons[actionCompleted.type];
 
-  if (skipped) {
     return (
       <Card className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 ${className}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            Revision Skipped
+            <IconComponent className={`h-5 w-5 ${colors[actionCompleted.type]}`} />
+            {actionCompleted.message}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6">
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-              Revision skipped for today
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {actionCompleted.description}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              This problem will be rescheduled for tomorrow
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (selectedQuality !== null) {
-    return (
-      <Card className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 ${className}`}>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-            Review Complete
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <div className={`text-2xl font-bold mb-2 ${getQualityColor(selectedQuality)}`}>
-              Quality: {selectedQuality}/5
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-              {getQualityDescription(selectedQuality)}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Next review scheduled based on your performance
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (showQualitySelector) {
-    return (
-      <Card className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 ${className}`}>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-            <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Rate Your Review
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
-              How well did you remember this problem?
-            </p>
-            
-            <div className="grid grid-cols-6 gap-2">
-              {[0, 1, 2, 3, 4, 5].map((quality) => (
-                <Button
-                  key={quality}
-                  variant="outline"
-                  size="sm"
-                  className="h-12 text-xs"
-                  onClick={() => handleReviewComplete(quality)}
-                >
-                  {quality}
-                </Button>
-              ))}
-            </div>
-            
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center space-y-1">
-              <p>0 = Complete blackout</p>
-              <p>5 = Perfect response</p>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -226,65 +212,79 @@ export function TodaysRevision({ revision, className = "", onRevisionUpdate }) {
               )}
             </div>
             
-            {/* Days since solved */}
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Calendar className="h-3 w-3" />
-              <span>
-                Solved {revision.days_since_solved} day{revision.days_since_solved !== 1 ? 's' : ''} ago
-              </span>
-            </div>
-
-            {/* Simple Spaced Repetition Info - Just 1-2 lines */}
-            {revision.spaced_repetition && (
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <Clock className="h-3 w-3" />
+            {/* Days since solved and review count */}
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
                 <span>
-                  {revision.spaced_repetition.repetitions > 0 
-                    ? `Reviewed ${revision.spaced_repetition.repetitions} time${revision.spaced_repetition.repetitions !== 1 ? 's' : ''} • Next: ${revision.spaced_repetition.next_review ? new Date(revision.spaced_repetition.next_review).toLocaleDateString() : 'Not scheduled'}`
-                    : 'First review • Next: Tomorrow'
-                  }
+                  Solved {revision.days_since_solved} day{revision.days_since_solved !== 1 ? 's' : ''} ago
                 </span>
               </div>
-            )}
+              {revision.review_count > 0 && (
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  <span>
+                    Reviewed {revision.review_count} time{revision.review_count !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => setShowQualitySelector(true)}
-              className="flex-1 text-sm h-8 bg-blue-600 hover:bg-blue-700 text-white"
-              size="sm"
-            >
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Complete Review
-            </Button>
-            <Button 
-              onClick={handleReview}
-              variant="outline"
-              className="flex-1 text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
-              size="sm"
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              View Problem
-            </Button>
+          {/* Complete Review Actions */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Complete Review:</p>
+            <div className="grid grid-cols-1 gap-2">
+              <Button 
+                onClick={handleCompleteReviewFuture}
+                disabled={loading}
+                className="flex-1 text-sm h-8 bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Choose to come back in future
+              </Button>
+              <Button 
+                onClick={handleCompleteReviewRemove}
+                disabled={loading}
+                className="flex-1 text-sm h-8 bg-purple-600 hover:bg-purple-700 text-white"
+                size="sm"
+              >
+                <UserCheck className="h-3 w-3 mr-1" />
+                Have confidence, remove from retry
+              </Button>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleSkip}
-              variant="outline" 
-              className="flex-1 text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
-              size="sm"
-            >
-              <XCircle className="h-3 w-3 mr-1" />
-              Skip Today
-            </Button>
+          {/* Other Actions */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                onClick={handleSkipToday}
+                variant="outline"
+                className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
+                size="sm"
+              >
+                <SkipForward className="h-3 w-3 mr-1" />
+                Skip Today
+              </Button>
+              <Button 
+                onClick={handleViewProblem}
+                variant="outline"
+                className="text-sm h-8 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300"
+                size="sm"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                View Problem
+              </Button>
+            </div>
           </div>
 
-          {/* Simple Info */}
+          {/* Info Box */}
           <div className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Rate your performance to optimize review intervals
+              <strong>Queue Updates:</strong> Choose "come back in future" to increment review count and keep in queue. 
+              Choose "remove from retry" to permanently remove from queue.
             </p>
           </div>
         </div>

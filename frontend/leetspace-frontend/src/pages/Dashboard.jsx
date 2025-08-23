@@ -93,36 +93,20 @@ export default function Dashboard() {
         }));
       }
 
-      // Update the problem in the backend
-      if (!isDemo) {
-        // Extract only the spaced repetition data to send to backend
-        const updateData = {
-          spaced_repetition: updatedProblem.spaced_repetition
-        };
-        
-        // Debug logging
-        console.log('🔍 Sending update data to backend:', updateData);
-        console.log('🔍 Updated problem:', updatedProblem);
-        
-        await problemsAPI.updateProblem(updatedProblem.id, updateData);
-        console.log('✅ Spaced repetition data updated in backend');
-      } else {
-        // Demo mode: just log the update
-        console.log('Demo mode: revision updated locally', updatedProblem);
+      // No additional backend update needed here since the TodaysRevision component 
+      // already handles the database updates directly via problemsAPI.updateProblem
+      
+      // If the problem was removed from retry queue, clear the today's revision
+      if (updatedProblem.retry_later === "No") {
+        // After a short delay, refresh the dashboard to get the next problem in queue
+        setTimeout(() => {
+          fetchDashboardData(true);
+        }, 2000);
       }
+      
     } catch (error) {
-      console.error('❌ Failed to update spaced repetition data:', error);
-      
-      // Show error toast
-      toast.error('Failed to save revision progress. Please try again.');
-      
-      // Revert local state change on error
-      if (data && data.todays_revision && data.todays_revision.id === updatedProblem.id) {
-        setData(prevData => ({
-          ...prevData,
-          todays_revision: data.todays_revision // Revert to original
-        }));
-      }
+      console.error('❌ Failed to handle revision update:', error);
+      toast.error('Failed to update revision. Please try again.');
     }
   };
 

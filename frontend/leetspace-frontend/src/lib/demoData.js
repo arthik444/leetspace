@@ -29,6 +29,7 @@ This is your personal coding journal - make it work for you!`,
 			{ language: "markdown", code: "## Key Takeaway\n\nmyLeetSpace transforms random practice into systematic learning. Start by logging problems with detailed notes and use the review system to reinforce concepts." }
 		],
 		retry_later: "No",
+		review_count: 0,
 	},
 	{
 		id: "demo2",
@@ -58,6 +59,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nTracking practice transforms random coding into systematic learning. The data reveals patterns you can't see otherwise." }
 		],
 		retry_later: "No",
+		review_count: 0,
 	},
 	{
 		id: "demo3",
@@ -88,6 +90,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nGood notes are your future self's best friend. Include context, approach, and insights that will help you months later." }
 		],
 		retry_later: "Yes",
+		review_count: 2,
 	},
 	{
 		id: "demo4",
@@ -121,6 +124,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nGood tagging creates a searchable knowledge base. Be consistent and specific to maximize the value." }
 		],
 		retry_later: "No",
+		review_count: 0,
 	},
 	{
 		id: "demo5",
@@ -157,6 +161,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nThe review system uses spaced repetition to move concepts from short-term to long-term memory." }
 		],
 		retry_later: "Yes",
+		review_count: 1,
 	},
 	{
 		id: "demo6",
@@ -194,6 +199,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nMultiple solutions show your growth and give you options. Each attempt teaches something new about algorithms and trade-offs." }
 		],
 		retry_later: "No",
+		review_count: 0,
 	},
 	{
 		id: "demo7",
@@ -229,6 +235,7 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nMistakes reveal your learning gaps. Track them systematically to turn weaknesses into strengths." }
 		],
 		retry_later: "Yes",
+		review_count: 0,
 	},
 	{
 		id: "demo8",
@@ -266,5 +273,6 @@ After tracking 50 problems, you'll see which concepts you struggle with most and
 			{ language: "markdown", code: "## Key Takeaway\n\nA good study plan combines new learning with systematic review. Let your progress data guide your focus areas." }
 		],
 		retry_later: "No",
+		review_count: 0,
 	},
 ];
