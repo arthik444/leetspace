@@ -4,8 +4,10 @@ import axios from 'axios';
 import { auth } from './firebase';
 import { demoApi } from './demoApi';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
