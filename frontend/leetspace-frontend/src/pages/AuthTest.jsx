@@ -6,6 +6,7 @@ import { getIdToken } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export default function AuthTest() {
   const { user } = useAuth();
   const [tokenInfo, setTokenInfo] = useState(null);
@@ -43,7 +44,7 @@ export default function AuthTest() {
   const testBackendAuth = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/test-auth', {
+      const response = await fetch(`${API_BASE_URL}/test-auth`, {
         headers: {
           'Authorization': `Bearer ${await getIdToken()}`,
           'Content-Type': 'application/json'

@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function AuthDebug() {
   const { user } = useAuth();
   const [debugInfo, setDebugInfo] = useState({});
@@ -54,7 +56,7 @@ export default function AuthDebug() {
 
       const idToken = await user.getIdToken();
       
-      const response = await fetch('http://localhost:8000/test-auth', {
+      const response = await fetch(`${API_BASE_URL}/test-auth`, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
@@ -83,7 +85,7 @@ export default function AuthDebug() {
 
       const idToken = await user.getIdToken();
       
-      const response = await fetch('http://localhost:8000/api/problems/?sort_by=date_solved&order=desc', {
+      const response = await fetch(`${API_BASE_URL}/api/problems/?sort_by=date_solved&order=desc`, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'

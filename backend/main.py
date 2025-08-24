@@ -6,23 +6,28 @@ from db.mongo import db
 from routes import problems, analytics, problems_debug
 from routes import analytics_debug
 from auth.dependencies import get_current_active_user
+import os
 
 app = FastAPI()
 
-# CORS setup for frontend
+# CORS setup for frontend (environment-driven)
+origins_env = os.getenv("ALLOWED_ORIGINS", "*")
+allow_origins = ["*"] if origins_env.strip() == "*" else [o.strip() for o in origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with frontend URL in production
+    allow_origins=allow_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers (debug routes conditional)
 app.include_router(problems.router, prefix="/api/problems", tags=["Problems"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
-app.include_router(analytics_debug.router, prefix="/api/analytics", tags=["Analytics Debug"])
-app.include_router(problems_debug.router, prefix="/api/problems", tags=["Problems Debug"])
+enable_debug = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() in ("1", "true", "yes")
+if enable_debug:
+    app.include_router(analytics_debug.router, prefix="/api/analytics", tags=["Analytics Debug"])
+    app.include_router(problems_debug.router, prefix="/api/problems", tags=["Problems Debug"])
 
 @app.get("/")
 def root():
@@ -67,3 +72,17 @@ async def simple_test():
 
 # password = quote_plus("leetspace_user")
 # print(password)
+
+# Create useful indexes on startup
+@app.on_event("startup")
+async def create_indexes() -> None:
+    try:
+        await db["problems"].create_index([("user_id", 1)])
+        await db["problems"].create_index([("user_id", 1), ("date_solved", -1)])
+        await db["problems"].create_index([("retry_later", 1)])
+        await db["problems"].create_index([("tags", 1)])
+        await db["activity_events"].create_index([("user_id", 1), ("date", -1)])
+        await db["revision_locks"].create_index([("user_id", 1), ("date", 1)], unique=True)
+    except Exception as e:
+        # Avoid crashing app on index creation failure in first deploys
+        print("Index creation skipped:", e)
