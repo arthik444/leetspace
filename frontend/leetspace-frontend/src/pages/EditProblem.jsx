@@ -130,7 +130,7 @@ export default function EditProblem() {
       }
     }
   }, [id]);
-  // Save draft to sessionStorage every 500ms
+  // Save draft to sessionStorage every 500ms (only if there's meaningful content)
   useEffect(() => {
     const timeout = setTimeout(() => {
       const draft = {
@@ -143,7 +143,17 @@ export default function EditProblem() {
         dateSolved,
         solutions,
       };
-      sessionStorage.setItem(`editProblemDraft-v2-${id}`, JSON.stringify(draft));
+      
+      // Only save if there's real user content
+      const hasRealContent = Boolean(
+        (title?.trim() && url?.trim()) || 
+        notes?.trim() || 
+        (solutions && solutions.some(s => s.code?.trim() && s.code.trim() !== "// write your solution here"))
+      );
+      
+      if (hasRealContent) {
+        sessionStorage.setItem(`editProblemDraft-v2-${id}`, JSON.stringify(draft));
+      }
     }, 500);
   
     return () => clearTimeout(timeout);
