@@ -117,8 +117,12 @@ export default function Problems() {
       toast.info("Demo mode: editing disabled.");
       return;
     }
+    // Ensure sessionStorage is set before navigation
     sessionStorage.setItem(`editProblemIntent-${problem.id}`, "fresh");
-    navigate(`/edit-problem/${problem.id}`);
+    // Use setTimeout to ensure sessionStorage is committed
+    setTimeout(() => {
+      navigate(`/edit-problem/${problem.id}`);
+    }, 0);
   };
 
   const handleDelete = (problem) => {
