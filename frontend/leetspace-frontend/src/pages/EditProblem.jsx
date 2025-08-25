@@ -84,7 +84,11 @@ export default function EditProblem() {
       if (saved) {
         try {
           const draft = JSON.parse(saved);
-          const draftHasCoreFields = Boolean((draft?.title && draft?.url) || draft?.notes || (draft?.solutions && draft.solutions.length));
+          const draftHasCoreFields = Boolean(
+            (draft?.title?.trim() && draft?.url?.trim()) || 
+            draft?.notes?.trim() || 
+            (draft?.solutions && draft.solutions.some(s => s.code?.trim() && s.code.trim() !== "// write your solution here"))
+          );
           if (draftHasCoreFields) {
             setTitle(draft.title || "");
             setUrl(draft.url || "");
