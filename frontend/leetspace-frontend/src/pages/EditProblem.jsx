@@ -78,44 +78,52 @@ export default function EditProblem() {
       setRetryLater("");
       setSolutions([{ code: "// write your solution here", language: "javascript" }]);
     } else {
-      // Load from sessionStorage
+      // Load from sessionStorage; if invalid or absent, fetch from API
       const saved = sessionStorage.getItem(storageKey);
+      let hasValidDraft = false;
       if (saved) {
         try {
           const draft = JSON.parse(saved);
-          setTitle(draft.title || "");
-          setUrl(draft.url || "");
-          setDifficulty(draft.difficulty || "");
-          setTags(draft.tags || "");
-          setNotes(draft.notes || "");
-          setDateSolved(draft.dateSolved || getTodayAsYYYYMMDD());
-          setRetryLater(draft.retryLater || "");
-          setSolutions(draft.solutions || [{ code: "", language: "javascript" }]);
-          return;
+          const draftHasCoreFields = Boolean((draft?.title && draft?.url) || draft?.notes || (draft?.solutions && draft.solutions.length));
+          if (draftHasCoreFields) {
+            setTitle(draft.title || "");
+            setUrl(draft.url || "");
+            setDifficulty(draft.difficulty || "");
+            setTags(draft.tags || "");
+            setNotes(draft.notes || "");
+            setDateSolved(draft.dateSolved || getTodayAsYYYYMMDD());
+            setRetryLater(draft.retryLater || "");
+            setSolutions(draft.solutions || [{ code: "", language: "javascript" }]);
+            hasValidDraft = true;
+          } else {
+            // Empty/invalid draft → clear it so we fetch from API
+            sessionStorage.removeItem(storageKey);
+          }
         } catch (err) {
           console.error("❌ Failed to parse draft:", err);
         }
       }
-  
-      // Fallback: fetch from API
-      async function fetchProblem() {
-        try {
-          const res = await problemsAPI.getProblem(id);
-          const p = res.data;
-          setTitle(p.title);
-          setUrl(p.url);
-          setDifficulty(p.difficulty);
-          setTags(p.tags.join(", "));
-          setNotes(p.notes || "");
-          setRetryLater(p.retry_later || "");
-          setDateSolved(p.date_solved || getTodayAsYYYYMMDD());
-          setSolutions(p.solutions || [{ code: "", language: "javascript" }]);
-        } catch (err) {
-          console.error("❌ Error fetching problem:", err);
+
+      if (!hasValidDraft) {
+        // Fallback: fetch from API
+        async function fetchProblem() {
+          try {
+            const res = await problemsAPI.getProblem(id);
+            const p = res.data;
+            setTitle(p.title);
+            setUrl(p.url);
+            setDifficulty(p.difficulty);
+            setTags(Array.isArray(p.tags) ? p.tags.join(", ") : "");
+            setNotes(p.notes || "");
+            setRetryLater(p.retry_later || "");
+            setDateSolved(p.date_solved || getTodayAsYYYYMMDD());
+            setSolutions(p.solutions || [{ code: "", language: "javascript" }]);
+          } catch (err) {
+            console.error("❌ Error fetching problem:", err);
+          }
         }
+        fetchProblem();
       }
-  
-      fetchProblem();
     }
   }, [id]);
   // Save draft to sessionStorage every 500ms
