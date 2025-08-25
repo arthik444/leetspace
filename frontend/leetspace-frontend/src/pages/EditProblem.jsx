@@ -110,10 +110,13 @@ export default function EditProblem() {
 
       if (!hasValidDraft) {
         // Fallback: fetch from API
+        console.log("🔍 No valid draft found, fetching from API...");
         async function fetchProblem() {
           try {
+            console.log("🔍 Making API call to getProblem...");
             const res = await problemsAPI.getProblem(id);
             const p = res.data;
+            console.log("🔍 API response:", p);
             setTitle(p.title);
             setUrl(p.url);
             setDifficulty(p.difficulty);
@@ -122,11 +125,14 @@ export default function EditProblem() {
             setRetryLater(p.retry_later || "");
             setDateSolved(p.date_solved || getTodayAsYYYYMMDD());
             setSolutions(p.solutions || [{ code: "", language: "javascript" }]);
+            console.log("🔍 Form populated successfully");
           } catch (err) {
             console.error("❌ Error fetching problem:", err);
           }
         }
         fetchProblem();
+      } else {
+        console.log("🔍 Valid draft found, skipping API fetch");
       }
     }
   }, [id]);
