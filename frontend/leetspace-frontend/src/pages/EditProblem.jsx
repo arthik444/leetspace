@@ -109,10 +109,15 @@ export default function EditProblem() {
       }
 
       if (!hasValidDraft) {
-        // Fallback: fetch from API
+        // Fallback: fetch from API (wait for user to be ready)
         console.log("🔍 No valid draft found, fetching from API...");
         async function fetchProblem() {
           try {
+            // Wait for user to be authenticated
+            if (!user) {
+              console.log("🔍 User not ready, waiting...");
+              return;
+            }
             console.log("🔍 Making API call to getProblem...");
             const res = await problemsAPI.getProblem(id);
             const p = res.data;
@@ -135,7 +140,7 @@ export default function EditProblem() {
         console.log("🔍 Valid draft found, skipping API fetch");
       }
     }
-  }, [id]);
+  }, [id, user]);
   // Save draft to sessionStorage every 500ms (only if there's meaningful content)
   useEffect(() => {
     const timeout = setTimeout(() => {
