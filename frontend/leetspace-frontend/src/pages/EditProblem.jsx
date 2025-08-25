@@ -60,7 +60,7 @@ export default function EditProblem() {
   }, []);
   // Load draft from sessionStorage or API
   useEffect(() => {
-    const storageKey = `editProblemDraft-${id}`;
+    const storageKey = `editProblemDraft-v2-${id}`;
     const intentKey = `editProblemIntent-${id}`;
     const isFresh = sessionStorage.getItem(intentKey) === "fresh";
   
@@ -139,7 +139,7 @@ export default function EditProblem() {
         dateSolved,
         solutions,
       };
-      sessionStorage.setItem(`editProblemDraft-${id}`, JSON.stringify(draft));
+      sessionStorage.setItem(`editProblemDraft-v2-${id}`, JSON.stringify(draft));
     }, 500);
   
     return () => clearTimeout(timeout);
@@ -205,7 +205,7 @@ export default function EditProblem() {
 
     try {
       const res = await problemsAPI.updateProblem(id, problemData);
-      sessionStorage.removeItem(`editProblemDraft-${id}`); // Clear draft on success
+      sessionStorage.removeItem(`editProblemDraft-v2-${id}`); // Clear draft on success
       navigate(`/problems/${id}`);
     } catch (err) {
       if (err.response?.status === 409) {
