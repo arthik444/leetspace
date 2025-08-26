@@ -67,7 +67,7 @@ function App() {
 
   const location = useLocation();
 
-  const shouldShowNavbar = location.pathname !== "/auth";
+  const shouldShowNavbar = location.pathname !== "/auth" && location.pathname !== "/reset-password";
   const isLanding = location.pathname === "/";
 
   

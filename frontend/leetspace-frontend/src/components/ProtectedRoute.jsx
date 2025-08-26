@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useDemo } from "@/context/DemoContext";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ProtectedRoute = ({ 
   children, 
@@ -63,8 +64,19 @@ const EmailVerificationRequired = () => {
 
   const handleResendVerification = async () => {
     setResendLoading(true);
-    await sendEmailVerification();
-    setResendLoading(false);
+    try {
+      const result = await sendEmailVerification();
+      if (result.success) {
+        toast.success("Verification email sent successfully! Check your inbox and spam folder.");
+      } else {
+        toast.error(result.error || "Failed to send verification email. Please try again.");
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      toast.error("Failed to send verification email. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const handleCheckVerification = async () => {

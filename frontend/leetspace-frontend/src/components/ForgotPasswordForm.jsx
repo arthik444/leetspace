@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { validateEmail } from "@/lib/authService";
 import { ArrowLeft, Mail, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function ForgotPasswordForm({ onBack, className, ...props }) {
   const [email, setEmail] = useState("");
@@ -34,12 +35,15 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
       const result = await sendPasswordReset(email);
       if (result.success) {
         setEmailSent(true);
+        toast.success("Password reset email sent! Check your inbox and spam folder.");
       } else {
         setError(result.error || "Failed to send password reset email");
+        toast.error(result.error || "Failed to send password reset email. Please try again.");
       }
     } catch (error) {
       console.error("Password reset error:", error);
       setError("An unexpected error occurred. Please try again.");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -50,12 +54,16 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
     setError("");
     try {
       const result = await sendPasswordReset(email);
-      if (!result.success) {
+      if (result.success) {
+        toast.success("Password reset email sent! Check your inbox and spam folder.");
+      } else {
         setError(result.error || "Failed to resend password reset email");
+        toast.error(result.error || "Failed to send password reset email. Please try again.");
       }
     } catch (error) {
       console.error("Password reset resend error:", error);
       setError("An unexpected error occurred. Please try again.");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,12 +88,11 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
               Check Your Email
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-            We've sent a secure link to reset your password at
-              {" "}
+            If an account with{" "}
               <span className="font-medium text-gray-900 dark:text-white">
                 {email}
               </span>
-              . The link opens a page where you can set and confirm a new password.
+              {" "}exists, a password reset link has been sent. The link opens a page where you can set and confirm a new password.
             </p>
             <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
               Don't see it? Check your spam folder too.
@@ -94,10 +101,6 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
         </div>
 
         <div className="space-y-4">
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>Didn't receive the email? Check your spam/junk folder or resend below.</p>
-          </div>
-          
           <Button 
             onClick={handleResend}
             disabled={loading}
