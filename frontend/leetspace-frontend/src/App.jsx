@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Problems from './pages/Problems';
@@ -14,7 +15,7 @@ import Landing from './pages/Landing';
 import Sample from './pages/Sample';
 import SampleProblem from './pages/SampleProblem';
 import Oops from './pages/Oops';
-import ResetPassword from './pages/ResetPassword';
+import AuthAction from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
 import Cookies from './pages/Cookies';
 import Terms from './pages/Terms';
@@ -32,6 +33,7 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
     <Router>
+      <ScrollToTop />
       <App />
     </Router>
     <BackToTop />
@@ -76,7 +78,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<AuthAction />} />
           <Route path="/sample" element={<Sample />} />
           <Route path="/sample/problem" element={<SampleProblem />} />
           <Route path="/oops" element={<Oops />} />
@@ -103,7 +105,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<AuthAction />} />
           <Route path="/sample" element={<Sample />} />
           <Route path="/sample/problem" element={<SampleProblem />} />
           <Route path="/oops" element={<Oops />} />

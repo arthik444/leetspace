@@ -101,11 +101,14 @@ const EmailVerificationRequired = () => {
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               Email Verification Required
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               Please verify your email address to continue. We sent a verification link to{" "}
               <span className="font-medium text-gray-900 dark:text-gray-100">
                 {user?.email}
               </span>
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">
+              Don't see it? Check your spam folder too.
             </p>
           </div>
 

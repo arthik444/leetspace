@@ -15,7 +15,9 @@ import {
     reload,
     fetchSignInMethodsForEmail,
     verifyPasswordResetCode,
-    confirmPasswordReset
+    confirmPasswordReset,
+    applyActionCode,
+    checkActionCode
   } from "firebase/auth";
   import { auth, getAuthErrorMessage } from "./firebase";
   
@@ -152,7 +154,7 @@ import {
         }
   
         await sendEmailVerification(user, {
-          url: window.location.origin + '/auth?verified=true',
+          url: window.location.origin + '/reset-password',
           handleCodeInApp: true
         });
   
@@ -234,6 +236,32 @@ import {
           return { success: true };
         } catch (error) {
           console.error('confirmPasswordReset error:', error);
+          return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
+        }
+      }
+
+      // Check action code (for both email verification and password reset)
+      static async checkActionCode(oobCode) {
+        try {
+          const info = await checkActionCode(auth, oobCode);
+          return { 
+            success: true, 
+            operation: info.operation,
+            data: info.data 
+          };
+        } catch (error) {
+          console.error('checkActionCode error:', error);
+          return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
+        }
+      }
+
+      // Apply action code (for email verification)
+      static async applyActionCode(oobCode) {
+        try {
+          await applyActionCode(auth, oobCode);
+          return { success: true };
+        } catch (error) {
+          console.error('applyActionCode error:', error);
           return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
         }
       }

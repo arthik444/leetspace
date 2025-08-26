@@ -101,12 +101,15 @@ export function LoginForm({ className, ...props }) {
         nextErrors.password = 'Password should be at least 6 characters long.';
         break;
       case 'auth/invalid-credential':
-        // This could be either wrong email or wrong password, but since we know the email exists
-        // (we're in the sign-in flow), it's likely a wrong password
+        // AuthService now handles email existence checking, so this should rarely occur
+        // If it does, it's likely a password issue
         nextErrors.password = 'Incorrect password. Please try again.';
         break;
       case 'auth/email-already-in-use':
         nextErrors.email = 'An account with this email already exists.';
+        break;
+      case 'auth/account-exists-with-different-credential':
+        nextErrors.email = message || 'This email is registered with a different sign-in method.';
         break;
       case 'auth/too-many-requests':
       case 'auth/network-request-failed':
@@ -209,6 +212,9 @@ export function LoginForm({ className, ...props }) {
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
               We sent a verification link to{" "}
               <span className="font-medium text-gray-900 dark:text-white">{unverifiedUser.email}</span>
+            </p>
+            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
+              Don't see it? Check your spam folder too.
             </p>
           </div>
         </div>

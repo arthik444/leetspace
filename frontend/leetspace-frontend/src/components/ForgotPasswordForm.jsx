@@ -87,6 +87,9 @@ export function ForgotPasswordForm({ onBack, className, ...props }) {
               </span>
               . The link opens a page where you can set and confirm a new password.
             </p>
+            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
+              Don't see it? Check your spam folder too.
+            </p>
           </div>
         </div>
 
