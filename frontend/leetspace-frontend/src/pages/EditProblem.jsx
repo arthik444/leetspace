@@ -58,67 +58,79 @@ export default function EditProblem() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
-  // Load draft from sessionStorage or API
+  // Load draft from sessionStorage OR fetch from API
   useEffect(() => {
     const storageKey = `editProblemDraft-${id}`;
     const intentKey = `editProblemIntent-${id}`;
     const isFresh = sessionStorage.getItem(intentKey) === "fresh";
-  
+    
     if (isFresh) {
-      // Clear the flag and reset everything
+      // Fresh edit: clear everything and fetch from API
       sessionStorage.removeItem(intentKey);
       sessionStorage.removeItem(storageKey);
-  
-      setTitle("");
-      setUrl("");
-      setDifficulty("");
-      setTags("");
-      setNotes("");
-      setDateSolved(new Date().toLocaleDateString("en-CA"));
-      setRetryLater("");
-      setSolutions([{ code: "// write your solution here", language: "javascript" }]);
-    } else {
-      // Load from sessionStorage
-      const saved = sessionStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const draft = JSON.parse(saved);
-          setTitle(draft.title || "");
-          setUrl(draft.url || "");
-          setDifficulty(draft.difficulty || "");
-          setTags(draft.tags || "");
-          setNotes(draft.notes || "");
-          setDateSolved(draft.dateSolved || getTodayAsYYYYMMDD());
-          setRetryLater(draft.retryLater || "");
-          setSolutions(draft.solutions || [{ code: "", language: "javascript" }]);
-          return;
-        } catch (err) {
-          console.error("❌ Failed to parse draft:", err);
-        }
-      }
-  
-      // Fallback: fetch from API
-      async function fetchProblem() {
-        try {
-          const res = await problemsAPI.getProblem(id);
+      
+      problemsAPI.getProblem(id)
+        .then(res => {
           const p = res.data;
-          setTitle(p.title);
-          setUrl(p.url);
-          setDifficulty(p.difficulty);
-          setTags(p.tags.join(", "));
+          setTitle(p.title || "");
+          setUrl(p.url || "");
+          setDifficulty(p.difficulty || "");
+          setTags(Array.isArray(p.tags) ? p.tags.join(", ") : "");
           setNotes(p.notes || "");
           setRetryLater(p.retry_later || "");
           setDateSolved(p.date_solved || getTodayAsYYYYMMDD());
           setSolutions(p.solutions || [{ code: "", language: "javascript" }]);
+        })
+        .catch(err => console.error("Error fetching problem:", err));
+    } else {
+      // Check for existing draft
+      const saved = sessionStorage.getItem(storageKey);
+      let hasValidDraft = false;
+      
+      if (saved) {
+        try {
+          const draft = JSON.parse(saved);
+          const draftHasCoreFields = Boolean(
+            (draft?.title?.trim() && draft?.url?.trim()) || 
+            draft?.notes?.trim() || 
+            (draft?.solutions && draft.solutions.some(s => s.code?.trim() && s.code.trim() !== "// write your solution here"))
+          );
+          
+          if (draftHasCoreFields) {
+            setTitle(draft.title || "");
+            setUrl(draft.url || "");
+            setDifficulty(draft.difficulty || "");
+            setTags(draft.tags || "");
+            setNotes(draft.notes || "");
+            setDateSolved(draft.dateSolved || getTodayAsYYYYMMDD());
+            setRetryLater(draft.retryLater || "");
+            setSolutions(draft.solutions || [{ code: "", language: "javascript" }]);
+            hasValidDraft = true;
+          }
         } catch (err) {
-          console.error("❌ Error fetching problem:", err);
+          console.error("Failed to parse draft:", err);
         }
       }
-  
-      fetchProblem();
+      
+      if (!hasValidDraft) {
+        // No valid draft: fetch from API
+        problemsAPI.getProblem(id)
+          .then(res => {
+            const p = res.data;
+            setTitle(p.title || "");
+            setUrl(p.url || "");
+            setDifficulty(p.difficulty || "");
+            setTags(Array.isArray(p.tags) ? p.tags.join(", ") : "");
+            setNotes(p.notes || "");
+            setRetryLater(p.retry_later || "");
+            setDateSolved(p.date_solved || getTodayAsYYYYMMDD());
+            setSolutions(p.solutions || [{ code: "", language: "javascript" }]);
+          })
+          .catch(err => console.error("Error fetching problem:", err));
+      }
     }
   }, [id]);
-  // Save draft to sessionStorage every 500ms
+  // Save draft to sessionStorage every 500ms (only if there's meaningful content)
   useEffect(() => {
     const timeout = setTimeout(() => {
       const draft = {
@@ -131,6 +143,7 @@ export default function EditProblem() {
         dateSolved,
         solutions,
       };
+      
       sessionStorage.setItem(`editProblemDraft-${id}`, JSON.stringify(draft));
     }, 500);
   
@@ -197,7 +210,7 @@ export default function EditProblem() {
 
     try {
       const res = await problemsAPI.updateProblem(id, problemData);
-      sessionStorage.removeItem(`editProblemDraft-${id}`); // Clear draft on success
+      sessionStorage.removeItem(`editProblemDraft-v2-${id}`); // Clear draft on success
       navigate(`/problems/${id}`);
     } catch (err) {
       if (err.response?.status === 409) {

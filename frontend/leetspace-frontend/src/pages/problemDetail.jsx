@@ -167,8 +167,12 @@ export default function ProblemDetail() {
                 toast.info("Demo mode: editing is not available. Sign up to edit your problems!");
                 return;
               }
+              // Ensure sessionStorage is set before navigation
               sessionStorage.setItem(`editProblemIntent-${problem.id}`, "fresh");
-              navigate(`/edit-problem/${problem.id}`);
+              // Use setTimeout to ensure sessionStorage is committed
+              setTimeout(() => {
+                navigate(`/edit-problem/${problem.id}`);
+              }, 0);
             }}
             title="Edit"
             className="hover:bg-muted cursor-pointer"
