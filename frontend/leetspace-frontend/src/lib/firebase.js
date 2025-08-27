@@ -9,7 +9,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnKIwRsTYWX9Acc66dKGEuSRaPCfM2MNU",
-  authDomain: "leetspaceauth.firebaseapp.com",
+  authDomain: "myleetspace.com",
   projectId: "leetspaceauth",
   storageBucket: "leetspaceauth.firebasestorage.app",
   messagingSenderId: "11940892272",
