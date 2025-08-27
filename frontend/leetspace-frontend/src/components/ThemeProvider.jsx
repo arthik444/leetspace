@@ -9,10 +9,13 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    const isAuth = typeof window !== 'undefined' && window.location.pathname === '/auth';
+    const isLightOnlyRoute = typeof window !== 'undefined' && (
+      window.location.pathname === '/auth' ||
+      window.location.pathname.startsWith('/reset-password')
+    );
     root.classList.remove("light", "dark");
-    root.classList.add(isAuth ? "light" : theme);
-    if (!isAuth) {
+    root.classList.add(isLightOnlyRoute ? "light" : theme);
+    if (!isLightOnlyRoute) {
       localStorage.setItem("theme", theme);
     }
   }, [theme]);
