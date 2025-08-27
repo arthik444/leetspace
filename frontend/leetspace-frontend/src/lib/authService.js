@@ -15,7 +15,9 @@ import {
     reload,
     fetchSignInMethodsForEmail,
     verifyPasswordResetCode,
-    confirmPasswordReset
+    confirmPasswordReset,
+    applyActionCode,
+    checkActionCode
   } from "firebase/auth";
   import { auth, getAuthErrorMessage } from "./firebase";
   
@@ -82,37 +84,18 @@ import {
           message: 'Signed in successfully!'
         };
       } catch (error) {
-        // For wrong password errors, return the Firebase error directly
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        // For credential-related errors, use generic message for security
+        if (error.code === 'auth/wrong-password' || 
+            error.code === 'auth/invalid-credential' || 
+            error.code === 'auth/user-not-found') {
           return {
             success: false,
-            error: getAuthErrorMessage(error.code),
-            code: error.code
+            error: 'Invalid email or password.',
+            code: 'auth/invalid-credential'
           };
         }
 
-        // For other errors, check if it's a user-not-found or provider issue
-        try {
-          const normalizedEmail = (email || '').trim().toLowerCase();
-          const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
-          if (!methods || methods.length === 0) {
-            return {
-              success: false,
-              error: 'No account found for this email.',
-              code: 'auth/user-not-found'
-            };
-          }
-          if (methods.includes('google.com') && !methods.includes('password')) {
-            return {
-              success: false,
-              error: 'This email is registered with Google. Use "Continue with Google".',
-              code: 'auth/account-exists-with-different-credential'
-            };
-          }
-        } catch (_) {
-          // ignore provider lookup failures; fall back to base error
-        }
-        
+        // For other errors, return the Firebase error
         return {
           success: false,
           error: getAuthErrorMessage(error.code),
@@ -152,7 +135,7 @@ import {
         }
   
         await sendEmailVerification(user, {
-          url: window.location.origin + '/auth?verified=true',
+          url: window.location.origin + '/reset-password',
           handleCodeInApp: true
         });
   
@@ -173,6 +156,7 @@ import {
     // Send password reset email
     static async sendPasswordReset(email) {
       try {
+        // Attempt password reset directly - let Firebase handle email validation
         await sendPasswordResetEmail(auth, email, {
           url: window.location.origin + '/reset-password',
           handleCodeInApp: true
@@ -180,7 +164,7 @@ import {
   
         return {
           success: true,
-          message: 'Password reset email sent successfully!'
+          message: 'If an account with that email exists, a password reset link has been sent.'
         };
       } catch (error) {
         console.error('Password reset error (with continue URL):', error);
@@ -197,7 +181,7 @@ import {
             await sendPasswordResetEmail(auth, email);
             return {
               success: true,
-              message: 'Password reset email sent successfully!'
+              message: 'If an account with that email exists, a password reset link has been sent.'
             };
           } catch (fallbackError) {
             console.error('Password reset fallback error (no continue URL):', fallbackError);
@@ -208,6 +192,7 @@ import {
             };
           }
         }
+        
         return {
           success: false,
           error: getAuthErrorMessage(error.code),
@@ -234,6 +219,32 @@ import {
           return { success: true };
         } catch (error) {
           console.error('confirmPasswordReset error:', error);
+          return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
+        }
+      }
+
+      // Check action code (for both email verification and password reset)
+      static async checkActionCode(oobCode) {
+        try {
+          const info = await checkActionCode(auth, oobCode);
+          return { 
+            success: true, 
+            operation: info.operation,
+            data: info.data 
+          };
+        } catch (error) {
+          console.error('checkActionCode error:', error);
+          return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
+        }
+      }
+
+      // Apply action code (for email verification)
+      static async applyActionCode(oobCode) {
+        try {
+          await applyActionCode(auth, oobCode);
+          return { success: true };
+        } catch (error) {
+          console.error('applyActionCode error:', error);
           return { success: false, error: getAuthErrorMessage(error.code), code: error.code };
         }
       }

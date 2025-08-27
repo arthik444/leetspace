@@ -1,5 +1,199 @@
 export const demoProblems = [
 	{
+		id: "demo0",
+		user_id: "abc123",
+		title: "Two Sum",
+		url: "https://leetcode.com/problems/two-sum/",
+		difficulty: "Easy",
+		tags: ["Array", "Hashmap", "Two Pointers", "Classic"],
+		date_solved: "2025-02-16",
+		notes: `# Two Sum - The Gateway Problem
+
+**Problem Statement:**
+Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.
+
+**Why This Problem Matters:**
+Two Sum is often the first problem students encounter in coding interviews. It teaches fundamental concepts that appear in hundreds of other problems:
+- Hashmap usage for O(1) lookups
+- Trade-offs between time and space complexity
+- Edge case handling
+- Multiple solution approaches
+
+**Key Learning Points:**
+
+## 1. Brute Force Approach (O(n²))
+- **Concept**: Check every possible pair
+- **When to use**: Small datasets, interview warm-up
+- **Learning value**: Understanding nested loops and basic problem-solving
+
+## 2. Hashmap Solution (O(n))
+- **Concept**: Use hashmap to store complements
+- **When to use**: Most practical scenarios, optimal solution
+- **Learning value**: Space-time trade-offs, hashmap operations
+
+## 3. Two Pointers with Sorting (O(n log n))
+- **Concept**: Sort array, use two pointers
+- **When to use**: When you need the actual values, not just indices
+- **Learning value**: Sorting algorithms, two-pointer technique
+
+**Common Mistakes to Avoid:**
+- Forgetting to handle edge cases (empty array, no solution)
+- Using the same element twice
+- Not considering space complexity trade-offs
+- Overcomplicating with unnecessary data structures
+
+**Interview Tips:**
+- Always start with brute force to show problem understanding
+- Discuss trade-offs before implementing
+- Consider follow-up questions (what if array is sorted? what if duplicates exist?)
+- Think about space complexity implications
+
+**Related Problems:**
+- Three Sum (builds on this concept)
+- Two Sum II (sorted array variant)
+- Subarray Sum Equals K (prefix sum + hashmap)
+- Maximum Subarray (different but uses similar techniques)
+
+**Personal Reflection:**
+This problem taught me that sometimes the simplest solution isn't the most efficient, but understanding why helps in more complex scenarios. The hashmap approach is a pattern I've used countless times since.`,
+		solutions: [
+			{ 
+				language: "python", 
+				code: `# Brute Force Approach - O(n²) time, O(1) space
+# Good for understanding the problem, not for production
+def twoSum_brute(nums, target):
+    n = len(nums)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return []  # No solution found
+
+# Test cases
+nums = [2, 7, 11, 15]
+target = 9
+print(twoSum_brute(nums, target))  # Output: [0, 1]` 
+			},
+			{ 
+				language: "python", 
+				code: `# Hashmap Solution - O(n) time, O(n) space
+# Optimal solution for most cases
+def twoSum_hashmap(nums, target):
+    seen = {}  # val -> index
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    
+    return []  # No solution found
+
+# Why this works:
+# 1. For each number, calculate what we need to reach target
+# 2. Check if we've seen that complement before
+# 3. If yes, we found our pair
+# 4. If no, store current number for future lookups
+
+# Time Complexity: O(n) - single pass through array
+# Space Complexity: O(n) - hashmap stores at most n elements` 
+			},
+			{ 
+				language: "python", 
+				code: `# Two Pointers with Sorting - O(n log n) time, O(1) space
+# Useful when you need the actual values, not indices
+def twoSum_twoPointers(nums, target):
+    # Create pairs of (value, original_index)
+    nums_with_index = [(nums[i], i) for i in range(len(nums))]
+    nums_with_index.sort()  # Sort by value
+    
+    left, right = 0, len(nums_with_index) - 1
+    
+    while left < right:
+        current_sum = nums_with_index[left][0] + nums_with_index[right][0]
+        
+        if current_sum == target:
+            # Return original indices, not sorted positions
+            return [nums_with_index[left][1], nums_with_index[right][1]]
+        elif current_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []
+
+# When to use this approach:
+# - Need actual values, not indices
+# - Array can be modified
+# - Want to minimize space usage
+# - Don't mind O(n log n) time complexity` 
+			},
+			{ 
+				language: "javascript", 
+				code: `// JavaScript Implementation - Hashmap approach
+// Shows how the same logic works across languages
+
+function twoSum(nums, target) {
+    const seen = new Map();
+    
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        
+        if (seen.has(complement)) {
+            return [seen.get(complement), i];
+        }
+        
+        seen.set(nums[i], i);
+    }
+    
+    return [];
+}
+
+// Key differences from Python:
+// - Map instead of object for better performance
+// - has() and get() methods
+// - set() method for assignment
+
+// Test cases
+console.log(twoSum([2, 7, 11, 15], 9));     // [0, 1]
+console.log(twoSum([3, 2, 4], 6));          // [1, 2]
+console.log(twoSum([3, 3], 6));             // [0, 1]` 
+			},
+			{ 
+				language: "markdown", 
+				code: `## Key Takeaways
+
+**1. Multiple Solutions Exist**
+- Brute force: Simple but inefficient
+- Hashmap: Optimal for most cases
+- Two pointers: Good for sorted arrays
+
+**2. Trade-offs Matter**
+- Time vs Space complexity
+- Readability vs Performance
+- Implementation complexity vs Runtime
+
+**3. Pattern Recognition**
+- Hashmap for O(1) lookups
+- Two pointers for sorted arrays
+- These patterns appear in hundreds of problems
+
+**4. Interview Strategy**
+- Start simple, optimize later
+- Discuss trade-offs explicitly
+- Consider edge cases and follow-ups
+
+**Next Steps:**
+- Practice Three Sum (builds on this)
+- Try Two Sum II (sorted array variant)
+- Implement with different data structures
+- Time yourself to build speed` 
+			}
+		],
+		retry_later: "Yes",
+		review_count: 1,
+	},
+	{
 		id: "demo1",
 		user_id: "abc123",
 		title: "Welcome to myLeetSpace",

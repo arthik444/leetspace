@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ArrowLeft, Mail } from "lucide-react";
 import AuthService, { validatePassword } from "@/lib/authService";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import Footer from "@/components/Footer";
@@ -25,6 +25,7 @@ export default function ResetPassword() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [actionType, setActionType] = useState(""); // "resetPassword" or "verifyEmail"
 
   // Theme handling for consistency with Auth page
   useEffect(() => {
@@ -42,27 +43,60 @@ export default function ResetPassword() {
   useEffect(() => {
     let isMounted = true;
     const verify = async () => {
-      if (mode !== "resetPassword" || !oobCode) {
-        setError("Invalid reset link. Please request a new password reset email.");
+      if (!mode || !oobCode) {
+        setError("Invalid link. Please check your email and try again.");
+        setVerifying(false);
+        return;
+      }
+
+      // Set the action type based on the mode parameter
+      if (mode === "resetPassword") {
+        setActionType("resetPassword");
+      } else if (mode === "verifyEmail") {
+        setActionType("verifyEmail");
+      } else {
+        setError("Unsupported action. Please check your email and try again.");
         setVerifying(false);
         return;
       }
 
       try {
-        const res = await AuthService.verifyPasswordResetCode(oobCode);
-        if (!isMounted) return;
-        
-        if (res.success) {
-          setVerifiedEmail(res.email || "");
-          setError("");
-        } else {
-          setError(res.error || "Invalid or expired link. Please request a new one.");
+        if (mode === "resetPassword") {
+          // Handle password reset verification
+          const res = await AuthService.verifyPasswordResetCode(oobCode);
+          if (!isMounted) return;
+          
+          if (res.success) {
+            setVerifiedEmail(res.email || "");
+            setError("");
+          } else {
+            setError(res.error || "Invalid or expired reset link. Please request a new password reset email.");
+          }
+        } else if (mode === "verifyEmail") {
+          // Handle email verification
+          const res = await AuthService.checkActionCode(oobCode);
+          if (!isMounted) return;
+          
+          if (res.success) {
+            // This is an email verification - apply the action code
+            const applyRes = await AuthService.applyActionCode(oobCode);
+            if (applyRes.success) {
+              setSuccess(true);
+              setError("");
+            } else {
+              setError(applyRes.error || "Failed to verify email. The link may be invalid or expired.");
+            }
+          } else {
+            setError("Invalid or expired email verification link. Please request a new verification email.");
+          }
         }
       } catch (err) {
         console.error('Verification error:', err);
-        setError("Failed to verify reset link. Please try again.");
+        setError("Failed to verify link. Please try again.");
       } finally {
-        setVerifying(false);
+        if (isMounted) {
+          setVerifying(false);
+        }
       }
     };
     
@@ -75,6 +109,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Only handle password reset submission, not email verification
+    if (actionType !== "resetPassword") {
+      return;
+    }
 
     // Enhanced validation
     if (!newPassword.trim()) {
@@ -134,18 +173,28 @@ export default function ResetPassword() {
   }
 
   if (success) {
+    const isEmailVerification = actionType === "verifyEmail";
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20">
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                {isEmailVerification ? (
+                  <Mail className="w-8 h-8 text-green-600 dark:text-green-400" />
+                ) : (
+                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Password Reset Successful!</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isEmailVerification ? "Email Verified!" : "Password Reset Successful!"}
+                </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                  Your password has been updated successfully. You can now sign in with your new password.
+                  {isEmailVerification 
+                    ? "Your email has been verified successfully. You can now access all features of your account."
+                    : "Your password has been updated successfully. You can now sign in with your new password."
+                  }
                 </p>
               </div>
             </div>
@@ -204,6 +253,22 @@ export default function ResetPassword() {
     );
   }
 
+  // For email verification, show a processing message since it's handled automatically
+  if (actionType === "verifyEmail" && !success && !error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Verifying Your Email</h2>
+            <p className="text-gray-600 dark:text-gray-300">Please wait while we verify your email address...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <div className="flex-1 flex items-center justify-center p-6">
@@ -217,7 +282,9 @@ export default function ResetPassword() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Only show password form for password reset actions */}
+          {actionType === "resetPassword" && (
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
               <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">
                 New Password
@@ -313,6 +380,7 @@ export default function ResetPassword() {
               </Button>
             </div>
           </form>
+          )}
         </div>
       </div>
       <Footer />

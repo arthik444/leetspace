@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useDemo } from "@/context/DemoContext";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ProtectedRoute = ({ 
   children, 
@@ -63,8 +64,19 @@ const EmailVerificationRequired = () => {
 
   const handleResendVerification = async () => {
     setResendLoading(true);
-    await sendEmailVerification();
-    setResendLoading(false);
+    try {
+      const result = await sendEmailVerification();
+      if (result.success) {
+        toast.success("Verification email sent successfully! Check your inbox and spam folder.");
+      } else {
+        toast.error(result.error || "Failed to send verification email. Please try again.");
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      toast.error("Failed to send verification email. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const handleCheckVerification = async () => {
@@ -101,11 +113,14 @@ const EmailVerificationRequired = () => {
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               Email Verification Required
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               Please verify your email address to continue. We sent a verification link to{" "}
               <span className="font-medium text-gray-900 dark:text-gray-100">
                 {user?.email}
               </span>
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">
+              Don't see it? Check your spam folder too.
             </p>
           </div>
 

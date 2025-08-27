@@ -9,7 +9,7 @@ import { validateEmail, validatePassword } from "@/lib/authService";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-// import { toast } from "sonner";
+import { toast } from "sonner";
 
 export function LoginForm({ className, ...props }) {
   const [formData, setFormData] = useState({
@@ -24,6 +24,7 @@ export function LoginForm({ className, ...props }) {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
   const [unverifiedUser, setUnverifiedUser] = useState(null);
 
   const navigate = useNavigate();
@@ -87,36 +88,38 @@ export function LoginForm({ className, ...props }) {
 
   const applyResultErrorsToInputs = (code, message) => {
     const nextErrors = {};
+    let generalErrorMessage = "";
+    
     switch (code) {
-      case 'auth/user-not-found':
-        nextErrors.email = 'No account found with this email address.';
-        break;
       case 'auth/invalid-email':
         nextErrors.email = 'Please enter a valid email address.';
-        break;
-      case 'auth/wrong-password':
-        nextErrors.password = 'Incorrect password. Please try again.';
         break;
       case 'auth/weak-password':
         nextErrors.password = 'Password should be at least 6 characters long.';
         break;
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
       case 'auth/invalid-credential':
-        // This could be either wrong email or wrong password, but since we know the email exists
-        // (we're in the sign-in flow), it's likely a wrong password
-        nextErrors.password = 'Incorrect password. Please try again.';
+        // For sign-in, use generic message for security (show as general error)
+        generalErrorMessage = 'Invalid email or password.';
         break;
       case 'auth/email-already-in-use':
         nextErrors.email = 'An account with this email already exists.';
         break;
+      case 'auth/account-exists-with-different-credential':
+        nextErrors.email = message || 'This email is registered with a different sign-in method.';
+        break;
       case 'auth/too-many-requests':
       case 'auth/network-request-failed':
-        nextErrors.email = message;
+        generalErrorMessage = message;
         break;
       default:
-        // Fallback to email field for unknown errors to keep errors at inputs only
-        nextErrors.email = message || 'Something went wrong. Please try again.';
+        // Fallback to general error for unknown errors
+        generalErrorMessage = message || 'Something went wrong. Please try again.';
     }
+    
     setValidationErrors(nextErrors);
+    setGeneralError(generalErrorMessage);
   };
 
   const handleSubmit = async (e) => {
@@ -124,6 +127,7 @@ export function LoginForm({ className, ...props }) {
     if (!validateForm()) return;
     setLoading(true);
     setUnverifiedUser(null);
+    setGeneralError("");
 
     try {
       if (isLogin) {
@@ -172,14 +176,28 @@ export function LoginForm({ className, ...props }) {
   };
 
   const handleResendVerification = async () => {
-    if (unverifiedUser) {
-      await sendEmailVerification();
+    if (unverifiedUser && !loading) {
+      setLoading(true);
+      try {
+        const result = await sendEmailVerification();
+        if (result.success) {
+          toast.success("Verification email sent successfully! Check your inbox and spam folder.");
+        } else {
+          toast.error(result.error || "Failed to send verification email. Please try again.");
+        }
+      } catch (error) {
+        console.error('Resend verification error:', error);
+        toast.error("Failed to send verification email. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setValidationErrors({});
+    setGeneralError("");
     setUnverifiedUser(null);
     setShowForgotPassword(false);
   };
@@ -210,12 +228,27 @@ export function LoginForm({ className, ...props }) {
               We sent a verification link to{" "}
               <span className="font-medium text-gray-900 dark:text-white">{unverifiedUser.email}</span>
             </p>
+            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
+              Don't see it? Check your spam folder too.
+            </p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <Button onClick={handleResendVerification} variant="outline" className="w-full">
-            Resend verification email
+          <Button 
+            onClick={handleResendVerification} 
+            disabled={loading}
+            variant="outline" 
+            className="w-full"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Sending...
+              </>
+            ) : (
+              "Resend verification email"
+            )}
           </Button>
           <Button onClick={() => setUnverifiedUser(null)} variant="ghost" className="w-full">
             Back to sign in
@@ -342,6 +375,14 @@ export function LoginForm({ className, ...props }) {
              {validationErrors.confirmPassword && (
                <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.confirmPassword}</p>
              )}
+           </div>
+         )}
+
+         {generalError && (
+           <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+             <p className="text-sm text-red-600 dark:text-red-400 text-center">
+               {generalError}
+             </p>
            </div>
          )}
  
